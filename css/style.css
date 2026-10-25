@@ -275,6 +275,23 @@ a { color: inherit; }
 .etapas .num { margin: 0 0 1.2rem; font: 900 clamp(3rem, 5vw, 5rem)/.8 var(--f-titulo); }
 .etapas p:not(.num) { margin: .9rem 0 0; max-width: 30ch; }
 
+/* ---------- Sobre mim: foto + texto à esquerda, habilidades à direita ---------- */
+.sobre-grade { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 3rem 5vw; align-items: start; }
+.sobre-lado > p { max-width: 46ch; margin: 1.4rem 0 0; }
+.sobre .foto { margin: 0; border: 1px solid var(--fio); background: var(--grafite); }
+.sobre .foto img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; }
+.fatos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 1.2rem; margin: 2.4rem 0 0; }
+.fatos > div { padding-top: .9rem; border-top: 1px solid var(--fio); }
+.fatos dt { color: var(--folha-realce); margin-bottom: .5rem; }
+.fatos dd { margin: 0; }
+.sobre-habilidades .cab { margin: 0 0 1.2rem; }
+.sobre-habilidades ol { list-style: none; margin: 0; padding: 0; }
+.sobre-habilidades li { display: grid; grid-template-columns: 3rem minmax(0, 1fr); gap: .5rem 1rem; padding: 1.5rem 0; border-top: 1px solid var(--fio); }
+.sobre-habilidades li:last-child { border-bottom: 1px solid var(--fio); }
+.sobre-habilidades .num { margin: .35em 0 0; grid-row: 1; }
+.sobre-habilidades h3 { grid-column: 2; }
+.sobre-habilidades li > p:not(.num) { grid-column: 2; margin: .3rem 0 0; max-width: 46ch; color: var(--off-white); opacity: .85; }
+
 /* ---------- FAQ: perguntas à esquerda, título à direita ---------- */
 .faq { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 0 5vw; align-items: start; } /* mesma grade da Abordagem */
 .faq .titulo-secao.direita { margin: 0; grid-column: 2; grid-row: 1; }
@@ -370,7 +387,8 @@ a { color: inherit; }
   .cartoes, .etapas { grid-template-columns: 1fr; gap: 1rem; }
   .etapas { gap: 2.2rem; }
   .cartoes > li { min-height: 0; }
-  .faq, .contato { grid-template-columns: 1fr; }
+  .faq, .contato, .sobre-grade { grid-template-columns: 1fr; }
+  .fatos { grid-template-columns: 1fr; gap: 1rem; }
   .faq .titulo-secao.direita { grid-column: 1; grid-row: 1; }
   .perguntas { grid-row: 2; }
   .fundo .azulejos, .fundo .brilho { background-size: 640px; }

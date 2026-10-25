@@ -66,6 +66,23 @@
           return '<li><p class="num">' + (i + 1) + '</p><h3>' + esc(e.titulo) + '</h3><p>' + esc(e.texto) + '</p></li>';
         }).join("") + '</ol></section>';
     },
+    // foto, texto e dados à esquerda; habilidades à direita (mesma grade 1.1fr / 1fr da Abordagem)
+    sobre: function (s) {
+      return '<section class="secao sobre" id="' + esc(s.id) + '">' + cabeca(s) +
+        '<div class="sobre-grade">' +
+          '<div class="sobre-lado">' +
+            '<figure class="foto"><img src="' + esc(s.foto.src) + '" alt="' + esc(s.foto.alt) + '" width="1411" height="941" loading="lazy" decoding="async"></figure>' +
+            s.texto.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join("") +
+            '<dl class="fatos">' + s.fatos.map(function (f) {
+              return '<div><dt class="rotulo">' + esc(f.rotulo) + '</dt><dd>' + esc(f.valor) + '</dd></div>';
+            }).join("") + '</dl>' +
+          '</div>' +
+          '<div class="sobre-habilidades"><p class="rotulo cab">' + esc(s.habilidades_rotulo) + '</p>' +
+            '<ol>' + s.habilidades.map(function (h, i) {
+              return '<li><p class="num rotulo">' + dois(i) + '</p><h3>' + esc(h.titulo) + '</h3><p>' + esc(h.texto) + '</p></li>';
+            }).join("") + '</ol></div>' +
+        '</div></section>';
+    },
     // perguntas à esquerda, título à direita
     faq: function (s) {
       return '<section class="secao faq" id="' + esc(s.id) + '">' +
