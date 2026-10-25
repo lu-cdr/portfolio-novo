@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireframe do portfólio</title>
+<style>
+:root { --bg: #f2f1ec; --papel: #fff; --linha: #c9c7bd; --tinta: #222; --suave: #5f5f5f; --sel: #2f6fed; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--tinta); font: 14px/1.4 system-ui, sans-serif; }
+.barra {
+  position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  padding: 10px 16px; background: #222; color: #eee;
+}
+.barra strong { margin-right: auto; }
+button { font: inherit; border: 1px solid var(--linha); background: #fff; color: var(--tinta); padding: 4px 10px; cursor: pointer; }
+.barra button { background: #333; color: #eee; border-color: #555; }
+button:hover { border-color: var(--tinta); }
+.ajuda { padding: 10px 16px; color: var(--suave); font-size: 13px; }
+main { max-width: 1280px; margin: 0 auto; padding: 8px 16px 80px; }
+.secao { margin: 0 0 18px; }
+.cab { display: flex; gap: 6px; align-items: center; margin-bottom: 4px; }
+.cab input { font: 600 13px system-ui; border: 0; background: transparent; text-transform: uppercase; letter-spacing: .06em; width: 220px; }
+.cab .esp { margin-left: auto; }
+.cab button { padding: 2px 8px; font-size: 12px; }
+.tela {
+  position: relative; background: var(--papel); border: 1px solid var(--linha);
+  background-image: linear-gradient(var(--bg) 1px, transparent 1px), linear-gradient(90deg, var(--bg) 1px, transparent 1px);
+  background-size: 8.333% 40px; overflow: hidden;
+}
+.altura { height: 10px; cursor: ns-resize; background: repeating-linear-gradient(90deg, var(--linha) 0 6px, transparent 6px 12px) center / 100% 2px no-repeat; }
+.bloco {
+  position: absolute; border: 1.5px solid #555; background: rgba(240, 240, 235, .92);
+  display: flex; align-items: center; justify-content: center; text-align: center; padding: 4px;
+  cursor: move; user-select: none; font-size: 12px; color: #333; overflow: hidden;
+}
+.bloco.forte { background: #d9d8d0; }
+.bloco.x::before, .bloco.x::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to top right, transparent calc(50% - .5px), #aaa 50%, transparent calc(50% + .5px)); }
+.bloco.x::after { background: linear-gradient(to top left, transparent calc(50% - .5px), #aaa 50%, transparent calc(50% + .5px)); }
+.bloco span { position: relative; z-index: 1; background: inherit; padding: 0 4px; }
+.bloco.sel { border-color: var(--sel); box-shadow: 0 0 0 2px rgba(47, 111, 237, .25); z-index: 5; }
+.bloco .canto { position: absolute; right: 0; bottom: 0; width: 12px; height: 12px; cursor: nwse-resize;
+  background: linear-gradient(135deg, transparent 50%, #555 50%); z-index: 2; }
+.bloco.sel .canto { background: linear-gradient(135deg, transparent 50%, var(--sel) 50%); }
+.toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: #222; color: #fff; padding: 8px 14px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+.toast.on { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="barra">
+  <strong>Wireframe — portfólio Lucas Giovanni</strong>
+  <button id="nova-secao">+ Seção</button>
+  <button id="copiar">Copiar layout (JSON)</button>
+  <button id="resetar">Voltar ao inicial</button>
+</div>
+<p class="ajuda">Arraste os blocos para mover · canto inferior direito redimensiona · duplo clique renomeia · <b>Delete</b> apaga o selecionado · <b>Ctrl+D</b> duplica · arraste a linha tracejada embaixo da seção para mudar a altura · setas ↑↓ reordenam seções. Salva sozinho neste navegador. Quando terminar, clique em “Copiar layout” e cole na conversa.</p>
+<main id="app"></main>
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  var CHAVE = "wireframe-portfolio-v1";
+  // x e w em % da largura (12 colunas = 8,333% cada); y e h em px. tipo: "x" = imagem/mídia (caixa com X), "forte" = destaque
+  var INICIAL = [
+    { nome: "Hero", altura: 640, blocos: [
+      { t: "Logo", x: 3, y: 20, w: 12, h: 36 },
+      { t: "Menu (Trabalhos · Serviços · Processo)", x: 52, y: 20, w: 28, h: 36 },
+      { t: "CTA Vamos conversar", x: 82, y: 20, w: 15, h: 36, k: "forte" },
+      { t: "Título: Sites que fazem parar de rolar", x: 3, y: 200, w: 40, h: 110 },
+      { t: "Rótulo + texto curto", x: 55, y: 160, w: 38, h: 110 },
+      { t: "Botões (Ver trabalhos · Ver serviços)", x: 55, y: 285, w: 30, h: 40 },
+      { t: "NOME GIGANTE (vazado, hover acende letra)", x: 3, y: 380, w: 94, h: 200, k: "forte" },
+      { t: "Fundo: azulejos + sombra de folhas", x: 70, y: 590, w: 27, h: 34, k: "x" }
+    ]},
+    { nome: "Abordagem", altura: 560, blocos: [
+      { t: "Cabeça ASCII 3D", x: 5, y: 40, w: 45, h: 480, k: "x" },
+      { t: "Rótulo Abordagem", x: 56, y: 150, w: 15, h: 26 },
+      { t: "Título", x: 56, y: 190, w: 35, h: 100 },
+      { t: "Texto (2 parágrafos)", x: 56, y: 305, w: 35, h: 100 },
+      { t: "Dica do cursor", x: 56, y: 425, w: 22, h: 26 }
+    ]},
+    { nome: "Trabalhos", altura: 640, blocos: [
+      { t: "Rótulo + título", x: 3, y: 40, w: 45, h: 90 },
+      { t: "Moldura desktop (iframe navegável)", x: 3, y: 160, w: 60, h: 360, k: "x" },
+      { t: "Moldura celular", x: 66, y: 160, w: 17, h: 360, k: "x" },
+      { t: "Nome do projeto · rótulo origem · escopo", x: 85, y: 160, w: 12, h: 200 },
+      { t: "Ver estudo de caso", x: 85, y: 380, w: 12, h: 40, k: "forte" },
+      { t: "Setas / progresso do slider", x: 3, y: 550, w: 25, h: 40 }
+    ]},
+    { nome: "Faixa infinita (serviços)", altura: 120, blocos: [
+      { t: "Marquee — Horizon Outlined", x: 0, y: 30, w: 100, h: 60, k: "forte" }
+    ]},
+    { nome: "Serviços", altura: 520, blocos: [
+      { t: "Rótulo + título", x: 3, y: 40, w: 45, h: 90 },
+      { t: "Sites com experiência", x: 3, y: 170, w: 22, h: 280 },
+      { t: "Sites institucionais", x: 27, y: 170, w: 22, h: 280 },
+      { t: "Landing pages", x: 51, y: 170, w: 22, h: 280 },
+      { t: "Identidade visual na web", x: 75, y: 170, w: 22, h: 280 }
+    ]},
+    { nome: "Processo", altura: 440, blocos: [
+      { t: "Rótulo + título", x: 3, y: 40, w: 45, h: 90 },
+      { t: "1 Conversa", x: 3, y: 170, w: 22, h: 200 },
+      { t: "2 Direção", x: 27, y: 170, w: 22, h: 200 },
+      { t: "3 Construção", x: 51, y: 170, w: 22, h: 200 },
+      { t: "4 Publicação", x: 75, y: 170, w: 22, h: 200 }
+    ]},
+    { nome: "FAQ", altura: 440, blocos: [
+      { t: "Rótulo + título", x: 3, y: 40, w: 35, h: 90 },
+      { t: "Perguntas (acordeão)", x: 45, y: 40, w: 52, h: 360 }
+    ]},
+    { nome: "Contato", altura: 520, blocos: [
+      { t: "Título Vamos conversar?", x: 3, y: 60, w: 45, h: 120 },
+      { t: "E-mail direto + redes", x: 3, y: 210, w: 30, h: 80 },
+      { t: "Formulário (nome, e-mail, tipo, mensagem)", x: 52, y: 60, w: 45, h: 360 },
+      { t: "Rodapé", x: 3, y: 460, w: 94, h: 40 }
+    ]}
+  ];
+
+  var dados;
+  try { dados = JSON.parse(localStorage.getItem(CHAVE)); } catch (e) {}
+  if (!dados) dados = JSON.parse(JSON.stringify(INICIAL));
+  var app = document.getElementById("app"), sel = null; // sel = {s, b}
+
+  function salvar() { try { localStorage.setItem(CHAVE, JSON.stringify(dados)); } catch (e) {} }
+  function aviso(txt) { var t = document.getElementById("toast"); t.textContent = txt; t.classList.add("on"); setTimeout(function () { t.classList.remove("on"); }, 1600); }
+  var snapX = function (v) { return Math.round(v * 2) / 2; }, snapY = function (v) { return Math.round(v / 8) * 8; };
+
+  function desenhar() {
+    app.innerHTML = "";
+    dados.forEach(function (S, si) {
+      var sec = document.createElement("section"); sec.className = "secao";
+      sec.innerHTML = '<div class="cab"><input value="' + S.nome.replace(/"/g, "&quot;") + '" aria-label="Nome da seção">' +
+        '<button data-a="bloco">+ Bloco</button><button data-a="midia">+ Mídia</button>' +
+        '<span class="esp"></span><button data-a="sobe" title="Subir">↑</button><button data-a="desce" title="Descer">↓</button><button data-a="apaga" title="Apagar seção">✕</button></div>' +
+        '<div class="tela" style="height:' + S.altura + 'px"></div><div class="altura" title="Arraste para mudar a altura"></div>';
+      var tela = sec.querySelector(".tela");
+      S.blocos.forEach(function (B, bi) { tela.appendChild(bloco(B, si, bi, tela)); });
+      sec.querySelector("input").addEventListener("input", function (e) { S.nome = e.target.value; salvar(); });
+      sec.querySelector(".cab").addEventListener("click", function (e) {
+        var a = e.target.dataset.a; if (!a) return;
+        if (a === "bloco" || a === "midia") S.blocos.push({ t: a === "midia" ? "Mídia" : "Novo bloco", x: 40, y: 40, w: 20, h: 80, k: a === "midia" ? "x" : undefined });
+        if (a === "sobe" && si > 0) dados.splice(si - 1, 0, dados.splice(si, 1)[0]);
+        if (a === "desce" && si < dados.length - 1) dados.splice(si + 1, 0, dados.splice(si, 1)[0]);
+        if (a === "apaga" && confirm("Apagar a seção “" + S.nome + "”?")) dados.splice(si, 1);
+        sel = null; salvar(); desenhar();
+      });
+      arrastar(sec.querySelector(".altura"), function (dx, dy, ini) { S.altura = Math.max(80, snapY(ini.altura + dy)); tela.style.height = S.altura + "px"; }, function () { return { altura: S.altura }; });
+      app.appendChild(sec);
+    });
+  }
+
+  function bloco(B, si, bi, tela) {
+    var el = document.createElement("div");
+    el.className = "bloco" + (B.k ? " " + B.k : "") + (sel && sel.s === si && sel.b === bi ? " sel" : "");
+    function pos() { el.style.left = B.x + "%"; el.style.top = B.y + "px"; el.style.width = B.w + "%"; el.style.height = B.h + "px"; }
+    pos();
+    el.innerHTML = "<span></span><i class='canto'></i>";
+    el.firstChild.textContent = B.t;
+    el.addEventListener("pointerdown", function () {
+      document.querySelectorAll(".bloco.sel").forEach(function (b) { b.classList.remove("sel"); });
+      el.classList.add("sel"); sel = { s: si, b: bi };
+    });
+    arrastar(el, function (dx, dy, ini) {
+      var W = tela.clientWidth;
+      B.x = Math.max(0, Math.min(100 - B.w, snapX(ini.x + dx / W * 100)));
+      B.y = Math.max(0, snapY(ini.y + dy)); pos();
+    }, function () { return { x: B.x, y: B.y }; }, ".canto");
+    arrastar(el.querySelector(".canto"), function (dx, dy, ini) {
+      var W = tela.clientWidth;
+      B.w = Math.max(3, Math.min(100 - B.x, snapX(ini.w + dx / W * 100)));
+      B.h = Math.max(16, snapY(ini.h + dy)); pos();
+    }, function () { return { w: B.w, h: B.h }; });
+    el.addEventListener("dblclick", function () {
+      var n = prompt("Texto do bloco:", B.t); if (n !== null) { B.t = n; el.firstChild.textContent = n; salvar(); }
+    });
+    return el;
+  }
+
+  // arrasto genérico: mover(dx, dy, estadoInicial) a cada passo; salva ao soltar
+  function arrastar(alvo, mover, inicio, ignorar) {
+    alvo.addEventListener("pointerdown", function (e) {
+      if (ignorar && e.target.closest(ignorar)) return;
+      e.stopPropagation(); e.preventDefault();
+      var x0 = e.clientX, y0 = e.clientY, ini = inicio();
+      alvo.setPointerCapture(e.pointerId);
+      function mv(ev) { mover(ev.clientX - x0, ev.clientY - y0, ini); }
+      function up() { alvo.removeEventListener("pointermove", mv); alvo.removeEventListener("pointerup", up); salvar(); }
+      alvo.addEventListener("pointermove", mv); alvo.addEventListener("pointerup", up);
+    });
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (!sel || e.target.tagName === "INPUT") return;
+    var S = dados[sel.s];
+    if (e.key === "Delete" || e.key === "Backspace") { S.blocos.splice(sel.b, 1); sel = null; salvar(); desenhar(); }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "d") {
+      e.preventDefault(); var c = JSON.parse(JSON.stringify(S.blocos[sel.b])); c.x = Math.min(100 - c.w, c.x + 2); c.y += 24;
+      S.blocos.push(c); sel = { s: sel.s, b: S.blocos.length - 1 }; salvar(); desenhar();
+    }
+  });
+  document.addEventListener("pointerdown", function (e) {
+    if (!e.target.closest(".bloco")) { sel = null; document.querySelectorAll(".bloco.sel").forEach(function (b) { b.classList.remove("sel"); }); }
+  });
+  document.getElementById("nova-secao").onclick = function () { dados.push({ nome: "Nova seção", altura: 400, blocos: [] }); salvar(); desenhar(); scrollTo(0, document.body.scrollHeight); };
+  document.getElementById("resetar").onclick = function () { if (confirm("Voltar ao layout inicial? O que você mexeu será perdido.")) { dados = JSON.parse(JSON.stringify(INICIAL)); salvar(); desenhar(); } };
+  document.getElementById("copiar").onclick = function () {
+    var txt = JSON.stringify(dados);
+    (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(function () { aviso("Layout copiado — cole na conversa"); }, function () { prompt("Copie o layout:", txt); });
+  };
+  desenhar();
+})();
+</script>
+</body>
+</html>

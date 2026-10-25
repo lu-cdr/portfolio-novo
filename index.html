@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lucas Giovanni — Sites com experiência</title>
+<meta name="description" content="Web designer. Sites com 3D, movimento e interação para marcas que querem ser lembradas.">
+<link rel="preload" href="fonts/SegmentAKey-Black.otf" as="font" type="font/otf" crossorigin>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+
+<div id="app"></div>
+
+<script type="application/json" id="estado">
+{
+  "lang": "pt",
+  "nome": "Lucas Giovanni",
+  "nav": [
+    {"rotulo": "Trabalhos", "href": "#trabalhos"},
+    {"rotulo": "Serviços", "href": "#servicos"},
+    {"rotulo": "Processo", "href": "#processo"}
+  ],
+  "cta": {"rotulo": "Vamos conversar", "href": "#contato"},
+  "abertura": {
+    "rotulo": "Web design + 3D + Motion",
+    "titulo": "Sites que fazem parar de rolar.",
+    "titulo_fixo": "Sites que",
+    "titulo_frases": ["fazem parar de rolar.", "convertem.", "geram vendas.", "transmitem autoridade."],
+    "texto": "Desenho e construo sites com movimento, 3D e interação — sem perder a clareza que faz o visitante entender o que você oferece e chamar para conversar.",
+    "acoes": [
+      {"rotulo": "Ver trabalhos", "href": "#trabalhos", "tipo": "primario"},
+      {"rotulo": "Ver serviços", "href": "#servicos", "tipo": "secundario"}
+    ]
+  },
+  "secoes": [
+    {"id": "abordagem", "rotulo": "Abordagem", "titulo": "Design que pensa antes de enfeitar", "cabeca": true,
+     "texto": ["Antes de qualquer efeito, eu entendo o que o seu visitante precisa encontrar e o que você precisa que ele faça.", "O movimento e o 3D entram depois, para guiar o olhar — nunca para esconder a informação."],
+     "dica": "Mexa o cursor sobre a cabeça"},
+    {"id": "trabalhos", "tipo": "trabalhos", "rotulo": "Trabalhos", "titulo": "Projetos para navegar",
+     "dica": "Role e clique dentro das telas: os sites estão no ar",
+     "projetos": [
+       {"nome": "[Nome do projeto 1]", "origem": "[Cliente · Autoral · Conceito]", "escopo": ["[Design]", "[Desenvolvimento]", "[3D]"], "url": "", "estudo": "#"},
+       {"nome": "[Nome do projeto 2]", "origem": "[Cliente · Autoral · Conceito]", "escopo": ["[Design]", "[Desenvolvimento]"], "url": "", "estudo": "#"},
+       {"nome": "[Nome do projeto 3]", "origem": "[Cliente · Autoral · Conceito]", "escopo": ["[Landing page]", "[Motion]"], "url": "", "estudo": "#"}
+     ]},
+    {"id": "faixa", "tipo": "faixa", "itens": ["Sites com experiência", "Sites institucionais", "Landing pages", "Identidade visual na web"]},
+    {"id": "servicos", "tipo": "servicos", "rotulo": "Serviços", "titulo": "O que eu faço",
+     "itens": [
+       {"titulo": "Sites com experiência", "texto": "3D, movimento e interação a serviço da mensagem. Para marcas que querem ser lembradas depois da visita.", "inclui": ["Direção visual", "3D e motion", "Desenvolvimento"]},
+       {"titulo": "Sites institucionais", "texto": "Quem você é, o que oferece e como falar com você — organizado para o visitante encontrar rápido.", "inclui": ["Arquitetura de conteúdo", "Design responsivo", "SEO básico"]},
+       {"titulo": "Landing pages", "texto": "Uma página, um objetivo. Texto, hierarquia e chamada pensados para levar a uma ação clara.", "inclui": ["Estrutura de conversão", "Copy junto com você", "Formulário ou WhatsApp"]},
+       {"titulo": "Identidade visual na web", "texto": "Levar a marca que você já tem para a tela: cores, tipografia e componentes que funcionam no site.", "inclui": ["Paleta e tipografia digitais", "Componentes", "Guia de uso"]}
+     ]},
+    {"id": "processo", "tipo": "processo", "rotulo": "Processo", "titulo": "Do primeiro papo ao site no ar",
+     "etapas": [
+       {"titulo": "Conversa", "texto": "Entendo o seu negócio, quem visita o site e o que você precisa que essa pessoa faça."},
+       {"titulo": "Direção", "texto": "Estrutura das páginas e direção visual. Você aprova o caminho antes de qualquer tela final."},
+       {"titulo": "Construção", "texto": "Design e desenvolvimento juntos, com prévias navegáveis para você acompanhar e ajustar."},
+       {"titulo": "Publicação", "texto": "Testes em celular e computador, site no ar e orientação para você seguir com ele."}
+     ]},
+    {"id": "faq", "tipo": "faq", "rotulo": "Dúvidas", "titulo": "Perguntas frequentes",
+     "perguntas": [
+       {"p": "Quanto custa um site?", "r": "Depende do tipo de site, do número de páginas e de quanto 3D e movimento ele leva. Depois da primeira conversa eu envio um orçamento fechado. [inserir faixa de valores, se quiser mostrar]"},
+       {"p": "Quanto tempo leva?", "r": "[inserir prazo médio real] para uma landing page e [inserir prazo] para um site completo. O prazo também depende de quando os textos e as imagens chegam."},
+       {"p": "3D e animação deixam o site lento?", "r": "Não precisam deixar. Os modelos são otimizados, carregam só quando a seção chega perto da tela e o celular recebe uma versão mais leve."},
+       {"p": "Eu consigo editar o site depois?", "r": "[inserir como funciona: painel de edição, manutenção mensal ou ajustes sob demanda]"},
+       {"p": "Preciso ter textos e fotos prontos?", "r": "Ajuda, mas não é obrigatório. A gente organiza o conteúdo junto na etapa de direção, e eu indico o que falta."},
+       {"p": "Você cuida de domínio e hospedagem?", "r": "[inserir o que você oferece aqui]"}
+     ]},
+    {"id": "contato", "tipo": "contato", "rotulo": "Contato", "titulo": "Vamos conversar?", "fundo": "azulejos",
+     "texto": "Conte um pouco do projeto. Eu respondo em [inserir prazo de resposta].",
+     "email": "[seu-email@dominio.com]",
+     "redes": [
+       {"rotulo": "Instagram", "href": "#"},
+       {"rotulo": "Behance", "href": "#"},
+       {"rotulo": "LinkedIn", "href": "#"}
+     ],
+     "tipos": ["Site com experiência", "Site institucional", "Landing page", "Identidade visual na web", "Ainda não sei"],
+     "rodape": "© 2026 Lucas Giovanni · Web designer"}
+  ]
+}
+</script>
+<script src="js/listras.js"></script>
+<script src="js/main.js"></script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+  // a cabeça só carrega (three + modelo) quando a seção chega perto da tela: a abertura não espera o 3D
+  const caixa = document.querySelector("#abordagem .cabeca");
+  if (caixa) {
+    const io = new IntersectionObserver(async ([e]) => {
+      if (!e.isIntersecting) return;
+      io.disconnect();
+      (await import("./js/ascii-head.js")).montar(caixa);
+    }, { rootMargin: "600px 0px" });
+    io.observe(caixa);
+  }
+</script>
+</body>
+</html>
