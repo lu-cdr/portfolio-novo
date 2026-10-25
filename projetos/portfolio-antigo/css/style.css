@@ -1,0 +1,1024 @@
+/* Portfólio do Lucas, versão motion.
+   O mesmo roteiro do portfólio 3D (projetos/portfolio-3d): o aparelho abre na chegada, vai para
+   o lado nos trabalhos e mostra na tela o projeto da vez, a frase em serifa troca letra a letra
+   e o contato fecha a página. Os aparelhos são vídeos com fundo transparente renderizados no
+   Blender (build/renderizar_aparelhos.py), com a tela em HTML encaixada por cima (js/palco.js).
+   O fundo é a água do 3D gravada em vídeo, com só a onda do cursor calculada ao vivo, numa
+   simulação pequena (js/fundo.js + js/agua.js). */
+
+:root {
+  /* claro = praia tropical: areia quase branca sob água cristalina; texto em petróleo escuro
+     (lê bem sobre a areia e o turquesa) e o coral como destaque */
+  --papel: #f7f2e8;
+  --sombra-chao: rgba(16, 39, 45, .28);
+  --papel-2: #fbf8f1;
+  --tinta: #10272d;
+  --fraco: #4e6468;
+  --fio: rgba(16, 39, 45, .14);
+  --realce: rgba(16, 39, 45, .07);
+  --tinta-forte: #061418;
+  --chip: rgba(251, 248, 241, .55);
+  --gesso-1: #fbf8f1;
+  --gesso-2: #e9e0cf;
+  --brasa: #e0613f;
+  /* vidro (topo e cards) */
+  --vd-topo: rgba(251, 247, 238, .36);
+  --vd-cartao: rgba(251, 247, 238, .52);
+  --vd-cartao-cel: rgba(251, 247, 238, .6);
+  --vd-aro: rgba(255, 255, 255, .95);
+  --vd-aro-fraco: rgba(255, 255, 255, .12);
+  --vd-sombra: rgba(16, 39, 45, .07);
+  --vd-brilho: rgba(255, 255, 255, .12);
+  /* contato e galeria: escuros nos dois temas (no claro, azul-oceano fundo) */
+  --c-fundo: #0c2a31;
+  --c-campo: #14373f;
+  --c-texto: #f3efe6;
+  --c-fraco: #9fb5b8;
+  --c-fio: #2c4e56;
+  --c-foco: #3d646c;
+  --c-vidro: rgba(12, 42, 49, .45);
+  --c-vidro-denso: rgba(12, 42, 49, .8);
+  --disp: "Instrument Serif", "Times New Roman", serif;
+  --corpo: "Geist", system-ui, sans-serif;
+  --gutter: clamp(16px, 4vw, 56px);
+  /* coluna central: o conteúdo para em 1200 px e centraliza, para não esticar em 16:9 nem
+     apertar em 4:3; a água do fundo continua de ponta a ponta. --lateral é o recuo de cada lado
+     (o % resolve na largura de quem usa, então serve tanto para seções quanto para o topo fixo) */
+  --largura: 1200px;
+  --lateral: max(var(--gutter), calc((100% - var(--largura)) / 2));
+  --ease: cubic-bezier(.22, .8, .2, 1);
+  /* curvas da Kinetics: mola (passa ~8% e assenta), deslize (rápido, sem passar), troca (vai e volta simétrico) */
+  --mola: cubic-bezier(.34, 1.56, .64, 1);
+  --deslize: cubic-bezier(.16, 1, .3, 1);
+  --troca: cubic-bezier(.65, 0, .35, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+/* o Lenis faz a rolagem suave; o smooth nativo brigaria com ele */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+:root { color-scheme: light; }
+/* modo escuro: segue o sistema quando ninguém escolheu, e o botão do topo grava a escolha em
+   data-theme (o mesmo atributo que o visualizador do claude.ai usa), que vence nos dois sentidos */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+  --papel: #0b1120;
+  --sombra-chao: rgba(0, 0, 0, .45);
+  --papel-2: #111a2e;
+  --tinta: #ecebe7;
+  --fraco: #9d9c96;
+  --fio: rgba(236, 235, 231, .16);
+  --realce: rgba(255, 255, 255, .08);
+  --tinta-forte: #fff;
+  --chip: rgba(20, 32, 58, .55);
+  --gesso-1: #16213a;
+  --gesso-2: #070b16;
+  --brasa: #e86a42;
+  --vd-topo: rgba(11, 17, 32, .42);
+  --vd-cartao: rgba(11, 17, 32, .54);
+  --vd-cartao-cel: rgba(9, 14, 27, .64);
+  --vd-aro: rgba(255, 255, 255, .34);
+  --vd-aro-fraco: rgba(255, 255, 255, .04);
+  --vd-sombra: rgba(0, 0, 0, .35);
+  --vd-brilho: rgba(255, 255, 255, .04);
+  --c-fundo: #070c18;
+  --c-campo: #121b30;
+  --c-fraco: #9aa3b5;
+  --c-fio: #26304a;
+  --c-foco: #37425e;
+  --c-vidro: rgba(11, 17, 32, .45);
+  --c-vidro-denso: rgba(7, 12, 24, .62);
+  color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --papel: #0b1120;
+  --sombra-chao: rgba(0, 0, 0, .45);
+  --papel-2: #111a2e;
+  --tinta: #ecebe7;
+  --fraco: #9d9c96;
+  --fio: rgba(236, 235, 231, .16);
+  --realce: rgba(255, 255, 255, .08);
+  --tinta-forte: #fff;
+  --chip: rgba(20, 32, 58, .55);
+  --gesso-1: #16213a;
+  --gesso-2: #070b16;
+  --brasa: #e86a42;
+  --vd-topo: rgba(11, 17, 32, .42);
+  --vd-cartao: rgba(11, 17, 32, .54);
+  --vd-cartao-cel: rgba(9, 14, 27, .64);
+  --vd-aro: rgba(255, 255, 255, .34);
+  --vd-aro-fraco: rgba(255, 255, 255, .04);
+  --vd-sombra: rgba(0, 0, 0, .35);
+  --vd-brilho: rgba(255, 255, 255, .04);
+  --c-fundo: #070c18;
+  --c-campo: #121b30;
+  --c-fraco: #9aa3b5;
+  --c-fio: #26304a;
+  --c-foco: #37425e;
+  --c-vidro: rgba(11, 17, 32, .45);
+  --c-vidro-denso: rgba(7, 12, 24, .62);
+  color-scheme: dark;
+}
+body {
+  margin: 0;
+  background: var(--papel);
+  color: var(--tinta);
+  font: 400 16px/1.55 var(--corpo);
+  overflow-x: hidden;
+}
+img, video { max-width: 100%; display: block; }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--brasa); outline-offset: 3px; }
+
+/* ---------- fundo: a água do portfólio 3D em vídeo, com a onda do cursor por cima (js/fundo.js)
+   O pôster (primeiro quadro) fica no background até o vídeo ter imagem. */
+.fundo {
+  position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+  background: var(--papel) center / cover no-repeat;
+}
+.fundo .agua-video, .fundo .agua-canvas {
+  position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; display: block;
+  object-fit: cover;
+}
+/* no celular o vídeo é 10% mais alto e desliza com a rolagem */
+.fundo .agua-video { top: -5%; height: 110%; opacity: 0; transition: opacity .4s; will-change: transform; }
+.fundo.pronto .agua-video { opacity: 1; }
+/* o canvas da água (computador) cobre tudo: só aparece quando o vídeo tem imagem */
+.fundo .agua-canvas { opacity: 0; transition: opacity .4s; }
+.fundo.pronto .agua-canvas { opacity: 1; }
+#app { position: relative; z-index: 2; }
+
+/* ---------- palco: o aparelho (vídeo com alpha) e a tela HTML encaixada nele (js/palco.js) */
+.palco { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+.aparelho {
+  position: absolute; left: 0; top: 0;
+  aspect-ratio: 4 / 3;                   /* o quadro dos vídeos */
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+}
+/* sombra de contato sob o aparelho (no render ele flutua no vazio): uma elipse macia no "chão" */
+.aparelho::before {
+  content: ""; position: absolute; left: 20%; right: 20%; top: 76.5%; height: 8%;
+  background: radial-gradient(50% 50% at 50% 50%, var(--sombra-chao), transparent 72%);
+}
+.aparelho > video, .aparelho > canvas, .aparelho > .pose {
+  position: absolute; inset: 0; width: 100%; height: 100%; max-width: none;
+  object-fit: contain;
+}
+/* só os filhos diretos: o canvas da rolagem, dentro da tela, não entra aqui */
+.aparelho > video, .aparelho > canvas { visibility: hidden; }
+.aparelho > .ativo { visibility: visible; }
+.aparelho .pose[hidden] { display: none; }
+/* chegada: enquanto o clipe de abertura baixa, um brilho diagonal passa pelo notebook fechado,
+   recortado pela própria imagem dele (máscara) */
+.aparelho.carregando::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, .28) 50%, transparent 65%) 0 0 / 250% 100% no-repeat;
+  -webkit-mask: var(--mascara) center / contain no-repeat; mask: var(--mascara) center / contain no-repeat;
+  animation: brilho-carga 1.6s cubic-bezier(.65, 0, .35, 1) infinite;
+}
+@keyframes brilho-carga { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+@media (prefers-reduced-motion: reduce) { .aparelho.carregando::after { animation: none; display: none; } }
+/* invólucro da tela, do tamanho do quadro: é nele (2D) que entra o recorte do copo do Pingado */
+.tela-recorte { position: absolute; inset: 0; pointer-events: none; }
+/* a tela: um quadro de tamanho fixo que o matrix3d encolhe e inclina sobre os 4 cantos do vídeo */
+.tela {
+  position: absolute; left: 0; top: 0;
+  transform-origin: 0 0;
+  overflow: hidden; visibility: hidden;
+  background: #0a0a0b;
+  /* o palco muda o matrix3d a cada quadro dos giros: com will-change o Chrome rasteriza a tela uma
+     vez e só compõe a transformação, em vez de redesenhar tudo a cada quadro */
+  will-change: transform;
+}
+/* sem cantos arredondados no notebook: a 6 px de 1440 eles somem na escala da página, e com
+   matrix3d custariam uma máscara a mais */
+.tela.notebook { width: 1440px; height: 900px; }
+.tela canvas.rolo { display: block; width: 100%; height: 100%; }
+.tela.celular { width: 660px; height: 1440px; border-radius: 64px; }
+.tela img { display: block; width: 100%; height: auto; max-width: none; }
+.tela .telas img { position: absolute; inset: 0; height: 100%; object-fit: cover; transition: transform .6s cubic-bezier(.7, 0, .3, 1); }
+/* o brilho do vidro semifosco: faixa diagonal larga e borrada */
+.tela::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(118deg, transparent 28%, rgba(255, 255, 255, .07) 44%, rgba(255, 255, 255, .03) 52%, transparent 64%);
+}
+
+/* ---------- topo */
+/* placa de vidro (topo e cards dos trabalhos), no espírito do vidro da Apple: blur leve (a
+   silhueta do que passa por baixo continua reconhecível), o fundo com aberração cromática
+   (vermelho e azul descolados, pelo filtro SVG #aberracao que o js/main.js injeta) e um aro
+   claro na borda. O vidro mora no ::before e o aro no ::after: com o backdrop-filter no próprio
+   elemento, ele viraria o "contêiner" dos filhos fixos e prenderia o menu de tela cheia do celular.
+   Nada acima de uma placa pode ter opacity < 1, senão o blur deixa de enxergar o fundo. */
+.vidro {
+  --vidro: var(--vd-topo);
+  --aro-forte: var(--vd-aro);
+  --aro-fraco: var(--vd-aro-fraco);
+  --vidro-sombra: var(--vd-sombra);
+  position: relative;
+  isolation: isolate;
+}
+.vidro::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit;
+  background: var(--vidro);
+  -webkit-backdrop-filter: blur(4px) saturate(1.5) brightness(1.04);
+  backdrop-filter: blur(4px) saturate(1.5) brightness(1.04);
+  box-shadow:
+    inset 0 1px 1px var(--aro-forte),
+    inset 0 -1px 1px var(--vidro-sombra),
+    inset 0 0 18px var(--vd-brilho),
+    0 10px 30px -18px rgba(0, 0, 0, .4);
+  transition: background .4s var(--ease);
+}
+/* Chromium aplica filtro SVG no backdrop; nos outros navegadores fica só o blur */
+.cromatico .vidro::before {
+  -webkit-backdrop-filter: url(#aberracao) blur(3.5px) saturate(1.5) brightness(1.04);
+  backdrop-filter: url(#aberracao) blur(3.5px) saturate(1.5) brightness(1.04);
+}
+/* aro de vidro: fio claro que acende no canto de cima e no de baixo, como a luz batendo na borda */
+.vidro::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+  padding: 1px;
+  background: linear-gradient(140deg, var(--aro-forte), var(--aro-fraco) 32%, var(--aro-fraco) 64%, var(--aro-forte));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  opacity: .85;
+}
+.topo {
+  position: fixed; z-index: 20;
+  top: calc(12px + env(safe-area-inset-top, 0px)); left: var(--lateral); right: var(--lateral);
+  display: flex; align-items: center; justify-content: flex-start; gap: 12px;
+  padding: 10px 10px 10px 20px;
+  border-radius: 22px;
+}
+.topo.no-escuro { --vidro: var(--c-vidro); --aro-forte: rgba(255, 255, 255, .38); --aro-fraco: rgba(255, 255, 255, .04); --vidro-sombra: rgba(0, 0, 0, .3); }
+/* sem backdrop-filter (navegadores antigos) o vidro fica mais opaco para o texto continuar legível */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .vidro { --vidro: var(--papel); }
+  .topo.no-escuro, .contato { --vidro: var(--c-fundo); }
+}
+.marca { margin-right: auto; text-decoration: none; display: flex; flex-direction: column; line-height: 1.05; }
+.marca b { font: 400 26px/1 var(--disp); letter-spacing: -.01em; }
+.marca span { font-size: 12px; color: var(--fraco); letter-spacing: .02em; margin-top: 4px; }
+.nav { display: flex; gap: 6px; }
+.nav a {
+  text-decoration: none; font-size: 14px; padding: 8px 14px; border-radius: 999px;
+  transition: background .3s var(--ease);
+}
+.nav a:hover { background: var(--realce); }
+/* Tab Pill Glide (Kinetics): uma pílula só, que mede o link da seção visível e desliza até ele
+   (js/motion.js). Com ela, o hover de cada link deixa de pintar o próprio fundo */
+.nav { position: relative; }
+.nav-pilula {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 999px; pointer-events: none;
+  background: var(--realce); opacity: 0;
+  transition: transform .4s var(--troca), width .4s var(--troca), opacity .25s;
+}
+.nav-pilula.visivel { opacity: 1; }
+.nav:has(.nav-pilula) .nav-painel > a:not(.cta):hover { background: none; }
+.nav-painel > a { position: relative; }
+.nav-painel > a.atual { color: var(--tinta-forte); }
+.topo.no-escuro .nav-pilula { background: rgba(255, 255, 255, .1); }
+.nav a.cta { background: var(--tinta); color: var(--papel); }
+.nav a.cta:hover { background: var(--tinta-forte); }
+.menu-btn { display: none; }
+/* no computador o painel do menu não existe como caixa: os links ficam direto na barra */
+.nav-painel { display: contents; }
+.nav-rodape { display: none; }
+/* tema e idioma: dois botões discretos ao lado do menu, visíveis também no celular */
+.ajustes { display: flex; align-items: center; gap: 2px; }
+.ajuste {
+  cursor: pointer; background: none; border: 0; color: inherit;
+  height: 36px; min-width: 36px; padding: 0 10px; border-radius: 999px;
+  display: inline-grid; place-items: center;
+  font-size: 13px; font-weight: 500; letter-spacing: .06em;
+  transition: background .3s var(--ease);
+}
+.ajuste:hover { background: var(--realce); }
+.ajuste svg { width: 18px; height: 18px; display: block; }
+.topo.no-escuro .ajuste:hover { background: rgba(255, 255, 255, .1); }
+.topo.no-escuro .marca span, .topo.no-escuro { color: var(--c-texto); }
+.topo.no-escuro .nav a.cta { background: var(--c-texto); color: var(--c-fundo); }
+.topo.no-escuro .nav a:hover { background: rgba(255, 255, 255, .1); }
+.topo.no-escuro .nav a.cta:hover { background: #fff; }
+.topo, .topo .marca span { transition: color .4s var(--ease); }
+
+/* ---------- hero */
+.hero {
+  min-height: 100svh;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  padding: 0 var(--lateral) clamp(32px, 7vh, 72px);
+  text-align: center;
+}
+.hero-palco { min-height: 60svh; display: grid; place-items: center; }
+.hero-reserva { display: none; }
+
+.frase {
+  font: 400 clamp(38px, 6.2vw, 84px)/1.02 var(--disp);
+  letter-spacing: -.015em;
+  margin: 0 auto;
+  max-width: 14em;
+  min-height: 2.1em;
+  display: flex; align-items: flex-end; justify-content: center; flex-wrap: wrap;
+}
+.frase .palavra { display: inline-block; white-space: nowrap; margin: 0 .12em; }
+.frase .letra {
+  display: inline-block;
+  /* Text Split Reveal (Kinetics): cada letra sobe com mola (passa um pouco e assenta) */
+  transition: transform .6s var(--mola), opacity .45s var(--ease), filter .5s var(--ease);
+}
+.frase .letra.fora { transform: translateY(.45em); opacity: 0; filter: blur(4px); }
+.frase .letra.saindo { transform: translateY(-.35em); opacity: 0; filter: blur(4px); }
+.hero-sub {
+  max-width: 34em; margin: 18px auto 0;
+  font-size: clamp(15px, 1.35vw, 18px); line-height: 1.5; color: var(--fraco);
+}
+.hero-link {
+  display: inline-flex; align-items: center; gap: 10px; margin-top: 18px;
+  font: 400 clamp(20px, 2vw, 26px)/1 var(--disp); text-decoration: none;
+}
+.hero-link::before {
+  content: ""; width: 0; height: 0;
+  border-left: 8px solid currentColor; border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+  transition: transform .4s var(--ease);
+}
+.hero-link:hover::before { transform: translateX(4px); }
+.dica { display: block; margin-top: 14px; font-size: 12px; color: var(--fraco); letter-spacing: .04em; }
+/* hero preso: --saida vai de 0 a 1 na primeira tela de rolagem (main.js); o texto acompanha 60%
+   da rolagem, então quase não sai do lugar, e apaga antes do primeiro trabalho chegar */
+.hero-texto { transform: translateY(calc(var(--saida, 0) * 60svh)); opacity: calc(1 - var(--saida, 0) * 1.8); }
+
+/* ---------- trabalhos */
+.trabalhos { padding: 0 var(--lateral); }
+/* o título da seção mora no primeiro trabalho, preso junto com o card: aparece inteiro no
+   primeiro slide em vez de passar de relance entre o hero e a coleção */
+.cabeca { max-width: 560px; margin-bottom: clamp(18px, 3vh, 32px); transition: opacity .6s var(--ease); }
+.projeto .cabeca p { margin: 0; font-size: 16px; color: var(--fraco); }
+.projeto:not(.ativo) .cabeca { opacity: .3; }
+.cabeca h2, .sobre h2 {
+  font: 400 clamp(44px, 6vw, 88px)/.95 var(--disp); margin: 0 0 16px; letter-spacing: -.02em;
+}
+.cabeca p { color: var(--fraco); margin: 0; max-width: 34em; }
+.projetos { list-style: none; margin: 0; padding: 0; counter-reset: p; }
+/* cada trabalho é um trecho alto com o texto preso no meio: 1 tela de trava + 1 de troca */
+.projeto {
+  height: 175vh;
+  width: min(46%, 560px);
+}
+.projeto-corpo {
+  position: sticky; top: 0; height: 100vh;
+  display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
+  padding: 28px 0;
+}
+/* o card de vidro do trabalho: um pouco mais denso que o topo, porque carrega texto corrido */
+.projeto-cartao {
+  --vidro: var(--vd-cartao);
+  padding: clamp(24px, 2.6vw, 36px);
+  border-radius: 26px;
+}
+.projeto-num { font-size: 13px; color: var(--fraco); letter-spacing: .06em; }
+.projeto h3 { font: 400 clamp(36px, 4vw, 58px)/1 var(--disp); margin: 10px 0 10px; letter-spacing: -.015em; }
+.projeto-meta { font-size: 13px; color: var(--fraco); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.projeto-meta span + span::before { content: "·"; margin-right: 14px; color: var(--fio); }
+.projeto p { margin: 18px 0; font-size: 17px; max-width: 30em; }
+.entregas { list-style: none; padding: 0; margin: 0 0 22px; display: flex; flex-wrap: wrap; gap: 6px; }
+.entregas li { font-size: 13px; padding: 5px 11px; border: 1px solid var(--fio); border-radius: 999px; background: var(--chip); }
+.ver-telas {
+  display: inline-flex; align-items: center; gap: 10px; cursor: pointer;
+  background: none; border: 0; padding: 0; font-size: 15px; border-bottom: 1px solid currentColor;
+}
+.projeto-tela { display: none; }
+/* texto e notebook trocam de lado a cada trabalho; o texto entra deslizando do lado dele */
+.projeto:nth-child(even) { margin-left: auto; }
+/* o card desliza do lado dele; quem esmaece é o texto dentro do vidro, não o card, para o
+   blur continuar enxergando o fundo */
+.projeto-corpo { transition: transform .9s var(--ease); }
+.projeto:not(.ativo) .projeto-corpo { transform: translateX(-56px); }
+.projeto:nth-child(even):not(.ativo) .projeto-corpo { transform: translateX(56px); }
+.projeto.ativo .projeto-corpo { transition-delay: .3s; }
+
+/* ---------- motion dos cards (Kinetics): quando o trabalho fica ativo, o conteúdo do vidro entra
+   em sequência (Stagger Entrance, 70 ms entre itens), o título se revela da esquerda para a
+   direita (Clip Wipe), as entregas pulam uma a uma e o número dá um tranco de mola (Number
+   Counter). Fora de foco tudo volta a esmaecer, sem atraso. Só opacity, transform e clip-path. */
+.projeto-cartao > * {
+  --i: 0;
+  transition: opacity .5s var(--deslize), transform .6s var(--deslize);
+}
+.projeto-cartao > :nth-child(2) { --i: 1; }
+.projeto-cartao > :nth-child(3) { --i: 2; }
+.projeto-cartao > :nth-child(4) { --i: 3; }
+.projeto-cartao > :nth-child(5) { --i: 4; }
+.projeto-cartao > :nth-child(6) { --i: 5; }
+.projeto:not(.ativo) .projeto-cartao > * { opacity: .3; transform: translateY(10px); }
+.projeto.ativo .projeto-cartao > * { transition-delay: calc(.38s + var(--i) * 70ms); }
+.projeto h3 { clip-path: inset(-.2em -.1em -.25em -.1em); transition: clip-path .7s var(--deslize), opacity .5s var(--deslize), transform .6s var(--deslize); }
+.projeto:not(.ativo) h3 { clip-path: inset(-.2em 100% -.25em -.1em); }
+.entregas li { --j: 0; transition: transform .45s var(--mola), opacity .3s var(--ease); }
+.entregas li:nth-child(2) { --j: 1; }
+.entregas li:nth-child(3) { --j: 2; }
+.entregas li:nth-child(4) { --j: 3; }
+.entregas li:nth-child(5) { --j: 4; }
+.projeto:not(.ativo) .entregas li { transform: scale(.86); opacity: 0; transition-delay: 0s; }
+.projeto.ativo .entregas li { transition-delay: calc(.7s + var(--j) * 45ms); }
+.projeto-num b { display: inline-block; font-weight: inherit; color: var(--tinta); }
+.projeto.ativo .projeto-num b { animation: tranco .55s var(--mola) .45s both; }
+@keyframes tranco { 0% { transform: translateY(8px) scale(.8); opacity: 0; } 60% { transform: translateY(-3px) scale(1.18); opacity: 1; } 100% { transform: none; opacity: 1; } }
+/* Hover Lift: o card sobe um pouco com o mouse em cima (só onde há mouse) */
+@media (hover: hover) and (pointer: fine) {
+  .projeto-cartao { transition: transform .5s var(--mola); }
+  .projeto.ativo .projeto-cartao:hover { transform: translateY(-6px); }
+}
+/* Underline Draw no "ver mais telas": o fio some para a direita e se redesenha da esquerda */
+.ver-telas { border-bottom: 0; position: relative; padding-bottom: 2px; }
+.ver-telas::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: currentColor;
+}
+.ver-telas:hover::after { animation: risco .7s var(--troca); }
+@keyframes risco {
+  0% { transform: scaleX(1); transform-origin: right; }
+  45% { transform: scaleX(0); transform-origin: right; }
+  46% { transform: scaleX(0); transform-origin: left; }
+  100% { transform: scaleX(1); transform-origin: left; }
+}
+
+/* ---------- serviços */
+/* ---------- sobre: título da seção em cima; à esquerda a foto horizontal, o texto e os dados,
+   à direita as habilidades em linhas com fio */
+.sobre { padding: 20vh var(--lateral) 16vh; }
+/* tudo da seção cabe numa tela do computador onde a rolagem para (título no mesmo lugar):
+   foto limitada pela altura da janela, dados numa linha só e respiros mais curtos */
+.sobre-grade { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(32px, 6vw, 88px); align-items: start; margin-top: 28px; }
+.sobre-foto {
+  margin: 0 0 20px; aspect-ratio: 3 / 2; width: min(100%, 45vh); border-radius: 24px; overflow: hidden;
+  display: grid; place-items: center; --vidro: var(--vd-cartao);
+}
+.sobre-foto img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: inherit; }
+/* sem foto: um quadro tracejado dentro do vidro, com a legenda do que entra ali */
+.sobre-vazia {
+  position: absolute; inset: 12px; border: 1.5px dashed var(--fio); border-radius: 16px;
+  display: grid; place-items: center; padding: 20px; text-align: center; color: var(--fraco); font-size: 14px;
+}
+.sobre-texto p { margin: 0 0 12px; color: var(--fraco); font-size: 15.5px; line-height: 1.55; max-width: 34em; }
+.sobre-dados { margin: 18px 0 0; padding: 14px 0; border-top: 1px solid var(--fio); border-bottom: 1px solid var(--fio); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.sobre-dados dt { font-size: 12px; color: var(--fraco); margin-bottom: 4px; }
+.sobre-dados dd { font-size: 14.5px; }
+.sobre-dados dd { margin: 0; }
+.habilidades h3 { font-size: 13px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--fraco); margin: 0 0 14px; }
+.habilidades ol { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--fio); }
+.habilidades li { padding: 18px 0; border-bottom: 1px solid var(--fio); }
+.habilidades h4 { font: 400 clamp(24px, 2.3vw, 32px)/1.05 var(--disp); margin: 0 0 6px; }
+.habilidades p { margin: 0; color: var(--fraco); max-width: 36em; }
+/* telas de computador baixas (notebook 1366 x 768): habilidades mais justas para caber também */
+@media (min-width: 900px) and (max-height: 820px) {
+  .habilidades li { padding: 12px 0; }
+  .habilidades h4 { font-size: 24px; }
+  .habilidades p, .sobre-texto p { font-size: 14.5px; }
+  .sobre-foto { width: min(100%, 40vh); }
+}
+
+/* ---------- contato (placa de vidro escuro por cima da água) */
+.contato {
+  /* o mesmo vidro do topo e dos cards, num tom escuro mais denso: o texto claro continua legível
+     sobre a areia do tema claro. Respeita a coluna central e tem o mesmo recuo nas quatro bordas */
+  --vidro: var(--c-vidro-denso);
+  --aro-forte: rgba(255, 255, 255, .38); --aro-fraco: rgba(255, 255, 255, .04); --vidro-sombra: rgba(0, 0, 0, .3);
+  --recuo: clamp(24px, 4vw, 56px);
+  --c-fio: rgba(255, 255, 255, .18);   /* fios claros: o fundo do vidro muda com a água por trás */
+  color: var(--c-texto);
+  width: min(100% - 2 * var(--gutter), var(--largura));
+  margin: 0 auto var(--gutter);
+  border-radius: 28px;
+  padding: var(--recuo);
+}
+.contato-grade { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: var(--recuo) clamp(32px, 5vw, 72px); align-items: stretch; }
+/* a coluna do texto ocupa a altura do formulário: o e-mail direto desce para a base, sem vão */
+.contato-grade > div:first-child { display: flex; flex-direction: column; }
+.contato h2 { font: 400 clamp(40px, 4.6vw, 64px)/1 var(--disp); margin: 0 0 16px; letter-spacing: -.015em; }
+.contato .sub { color: var(--c-fraco); margin: 0 0 24px; max-width: 26em; }
+.contato .direto { color: var(--c-fraco); font-size: 14px; margin: auto 0 0; }
+.contato .direto a { color: var(--c-texto); }
+.form { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.campo { display: grid; gap: 8px; font-size: 13px; }
+.campo.largo { grid-column: 1 / -1; }
+.campo input, .campo textarea {
+  font: inherit; font-size: 16px; color: var(--c-texto);
+  background: var(--c-campo); border: 1px solid transparent; border-radius: 12px;
+  padding: 13px 14px; outline: none; transition: border-color .3s;
+}
+.campo textarea { min-height: 130px; resize: none; }   /* sem alça de redimensionar: o campo não muda o layout */
+.campo input:focus, .campo textarea:focus { border-color: var(--c-foco); }
+.pilulas { display: flex; flex-wrap: wrap; gap: 8px; }
+.pilula {
+  cursor: pointer; background: none; border: 1px solid var(--c-fio); color: var(--c-texto);
+  border-radius: 999px; padding: 7px 14px; font-size: 13px; transition: all .25s var(--ease);
+}
+.pilula[aria-pressed="true"] { background: var(--c-texto); color: var(--c-fundo); border-color: var(--c-texto); }
+/* Choice Chips (Kinetics): pulo de mola ao ligar/desligar (a classe vem do js/motion.js) */
+.pilula.pulo { animation: pulo .32s var(--mola); }
+@keyframes pulo { 50% { transform: scale(1.12); } }
+.enviar {
+  justify-self: start; display: inline-flex; align-items: center; gap: 10px; cursor: pointer;
+  background: var(--c-texto); color: var(--c-fundo); border: 0; border-radius: 999px; padding: 13px 22px; font-size: 15px;
+}
+.enviar::after { content: ""; border-left: 8px solid currentColor; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
+/* Submit States (Kinetics): rótulo -> três pontinhos pulando -> check desenhado -> rótulo.
+   O botão guarda a largura do rótulo; os estados se sobrepõem no meio dele */
+.enviar { position: relative; }
+.enviar .pontos, .enviar .feito { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 5px; opacity: 0; pointer-events: none; }
+.enviar .pontos i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.enviar.enviando .pontos i { animation: pontinho .6s ease-in-out infinite; }
+.enviar .pontos i:nth-child(2) { animation-delay: .12s; }
+.enviar .pontos i:nth-child(3) { animation-delay: .24s; }
+@keyframes pontinho { 50% { transform: translateY(-5px); } }
+.enviar .feito svg { width: 22px; height: 22px; }
+.enviar .feito path { stroke-dasharray: 22; stroke-dashoffset: 22; transition: stroke-dashoffset .45s var(--mola) .05s; }
+.enviar .rotulo, .enviar::after { transition: opacity .2s; }
+.enviar.enviando .rotulo, .enviar.feito-on .rotulo, .enviar.enviando::after, .enviar.feito-on::after { opacity: 0; }
+.enviar.enviando .pontos, .enviar.feito-on .feito { opacity: 1; }
+.enviar.feito-on .feito path { stroke-dashoffset: 0; }
+/* a mensagem pronta entra subindo, depois dos pontinhos */
+@keyframes sobe { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+/* Copy Button (Kinetics): o ícone de copiar dá lugar a um check com mola */
+/* Shine Sweep (Kinetics): um reflexo diagonal atravessa os botões cheios no hover. O "Contato" do
+   menu só ganha o reflexo no computador: no painel do celular o ::before dele é o número "03" */
+.enviar { overflow: hidden; isolation: isolate; }
+.enviar::before {
+  content: ""; position: absolute; top: 0; left: -120%; width: 60%; height: 100%; z-index: -1;
+  transform: skewX(-20deg); pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .35), transparent);
+}
+.enviar:hover::before { left: 140%; transition: left .9s var(--troca); }
+@media (min-width: 900px) {
+  .nav a.cta { position: relative; overflow: hidden; isolation: isolate; }
+  .nav a.cta::before {
+    content: ""; position: absolute; top: 0; left: -120%; width: 60%; height: 100%; z-index: -1;
+    transform: skewX(-20deg); pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .35), transparent);
+  }
+  .nav a.cta:hover::before { left: 140%; transition: left .9s var(--troca); }
+}
+.rodape { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin-top: var(--recuo); padding-top: var(--recuo); border-top: 1px solid var(--c-fio); color: var(--c-fraco); font-size: 13px; }
+.rodape b { font: 400 clamp(48px, 8vw, 112px)/.8 var(--disp); color: var(--c-texto); letter-spacing: -.03em; }
+
+/* ---------- galeria */
+.galeria {
+  position: fixed; inset: 0; z-index: 50; background: var(--c-fundo);
+  display: grid; grid-template-rows: auto 1fr; color: var(--c-texto);
+  opacity: 0; transition: opacity .35s var(--ease);
+}
+.galeria.aberta { opacity: 1; }
+.galeria[hidden] { display: none; }
+.galeria header { display: flex; justify-content: space-between; align-items: center; padding: 18px var(--gutter); }
+.galeria h4 { font: 400 28px/1 var(--disp); margin: 0; }
+.galeria .fechar { cursor: pointer; background: none; border: 1px solid var(--c-fio); border-radius: 999px; padding: 8px 16px; }
+.faixa {
+  display: flex; gap: 18px; overflow-x: auto; padding: 0 var(--gutter) 28px; align-items: center;
+  scroll-snap-type: x mandatory; overscroll-behavior: contain;
+}
+.faixa img, .faixa video {
+  height: min(78vh, 900px); width: auto; max-width: none; border-radius: 10px; scroll-snap-align: center;
+  object-fit: contain; background: #000;
+}
+
+/* ---------- celular */
+@media (max-width: 899px) {
+  .marca b { white-space: nowrap; }   /* o nome não quebra ao lado do botão do menu */
+  .menu-btn {
+    display: inline-flex; align-items: center; justify-content: center; cursor: pointer; background: var(--tinta); color: var(--papel);
+    border: 0; border-radius: 999px; width: 44px; height: 38px; padding: 0; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;   /* sem o flash azul do toque no celular */
+    transition: background .3s var(--ease), color .3s var(--ease);
+  }
+  .topo.no-escuro .menu-btn { background: var(--c-texto); color: var(--c-fundo); }
+  /* a pílula do menu é do computador; se a janela encolher depois de criada, ela some aqui
+     (senão ocupa o menu de tela cheia como uma oval) */
+  .nav-pilula { display: none; }
+  /* ícone: duas linhas que giram e viram um X ao abrir; só o ícone, com tamanho fixo (o texto
+     "Menu"/"Fechar" fica para leitores de tela), e linhas de 2px em pixels inteiros para a mesma espessura */
+  .menu-rotulo { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .menu-icone { position: relative; width: 18px; height: 10px; }
+  .menu-icone i { position: absolute; left: 0; right: 0; height: 2px; border-radius: 2px; background: currentColor;
+    transition: transform .45s var(--ease), top .45s var(--ease); }
+  .menu-icone i:first-child { top: 0; }
+  .menu-icone i:last-child { top: 8px; }
+  .menu-btn[aria-expanded="true"] .menu-icone i { top: 4px; }
+  .menu-btn[aria-expanded="true"] .menu-icone i:first-child { transform: rotate(45deg); }
+  .menu-btn[aria-expanded="true"] .menu-icone i:last-child { transform: rotate(-45deg); }
+
+  /* o menu: a tela inteira vira uma película (um toque nela fecha) e o painel de vidro desce do
+     topo, desenrolando de cima para baixo. O recorte fica no próprio vidro (o ::before do painel):
+     nada acima de uma placa de vidro pode ter opacity ou clip, senão o blur deixa de enxergar a
+     página. Os links entram em sequência; ao fechar, tudo volta mais rápido e sem a sequência */
+  .nav {
+    display: block; position: fixed; inset: 0; z-index: -2;
+    visibility: hidden; pointer-events: none;
+    background: rgba(16, 39, 45, 0); transition: background .4s var(--ease), visibility 0s linear .45s;
+  }
+  .nav.aberta { visibility: visible; pointer-events: auto; background: rgba(16, 39, 45, .14); transition: background .4s var(--ease), visibility 0s; }
+  .nav-painel {
+    display: flex; flex-direction: column; gap: 2px; position: absolute;
+    top: calc(12px + env(safe-area-inset-top, 0px) + 82px); left: var(--lateral); right: var(--lateral);
+    padding: 22px 24px 20px; border-radius: 22px; isolation: isolate; counter-reset: item;
+  }
+  .nav-painel::before, .nav-painel::after {
+    content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+    clip-path: inset(0 0 100% 0 round 22px);
+    transition: clip-path .32s cubic-bezier(.6, 0, .8, .4);
+  }
+  .nav-painel::before {
+    background: var(--vd-cartao-cel);
+    -webkit-backdrop-filter: blur(16px) saturate(1.5) brightness(1.04);
+    backdrop-filter: blur(16px) saturate(1.5) brightness(1.04);
+    box-shadow: inset 0 1px 1px var(--vd-aro), inset 0 -1px 1px var(--vd-sombra), 0 24px 50px -24px rgba(0, 0, 0, .45);
+  }
+  .nav-painel::after {
+    padding: 1px;
+    background: linear-gradient(140deg, var(--vd-aro), var(--vd-aro-fraco) 32%, var(--vd-aro-fraco) 64%, var(--vd-aro));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  }
+  .nav.aberta .nav-painel::before, .nav.aberta .nav-painel::after {
+    clip-path: inset(0 0 0 0 round 22px);
+    transition: clip-path .55s var(--ease);
+  }
+  .nav-painel > a {
+    counter-increment: item; display: flex; align-items: baseline; gap: 14px;
+    font: 400 44px/1.1 var(--disp); padding: 6px 0; border-radius: 0;
+    background: none !important; color: var(--tinta) !important; letter-spacing: -.01em;
+    opacity: 0; transform: translateY(14px);
+    transition: opacity .15s var(--ease), transform .2s var(--ease);
+  }
+  .nav-painel > a::before {
+    content: counter(item, decimal-leading-zero); font: 500 12px/1 var(--corpo); letter-spacing: .08em;
+    color: var(--fraco); transform: translateY(-14px);
+  }
+  .nav.aberta .nav-painel > a {
+    opacity: 1; transform: none;
+    transition: opacity .45s var(--ease) calc(.14s + var(--i) * .06s), transform .55s var(--ease) calc(.14s + var(--i) * .06s);
+  }
+  .nav-rodape {
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; margin: 16px 0 0; padding-top: 14px;
+    border-top: 1px solid var(--fio); font-size: 13px; color: var(--fraco);
+    opacity: 0; transition: opacity .15s var(--ease);
+  }
+  .nav-rodape a { color: var(--tinta); }
+  .nav.aberta .nav-rodape { opacity: 1; transition: opacity .45s var(--ease) .34s; }
+  .hero-palco { min-height: 56svh; }
+  /* no celular os trabalhos também são slides presos, como no computador: cada um é um trecho
+     mais alto que a tela com o card preso embaixo (sticky) e o notebook no alto (na cena); um
+     gesto do dedo leva ao próximo (js/main.js). Nunca sobra notebook coberto nem vão vazio. */
+  .projeto { width: 100%; height: 170vh; height: 170svh; padding: 0; }
+  .projeto-corpo {
+    position: sticky; top: 0; height: 100vh; height: 100svh;
+    display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch;
+    padding: 0 0 calc(18px + env(safe-area-inset-bottom, 0px));
+  }
+  /* no celular o notebook fica atrás dos cards, então o vidro vem um pouco mais denso */
+  .projeto-cartao { --vidro: var(--vd-cartao-cel); padding: 18px 18px 20px; border-radius: 20px; }
+  /* card compacto: o mais alto (4 entregas) não pode empurrar o título do 1º trabalho para cima do objeto */
+  .projeto h3 { font-size: 34px; margin: 6px 0 8px; }
+  .projeto p { font-size: 15.5px; line-height: 1.5; margin: 12px 0 14px; }
+  .entregas { gap: 5px; margin-bottom: 16px; }
+  .entregas li { font-size: 12px; padding: 4px 9px; }
+  .projeto-cartao::before { -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+  .projeto:nth-child(even) { margin-left: 0; }
+  .projeto:not(.ativo) .projeto-corpo, .projeto:nth-child(even):not(.ativo) .projeto-corpo { transform: none; }
+  .sobre { padding-top: 14vh; }
+  .sobre-grade { grid-template-columns: 1fr; margin-top: 28px; }
+  .sobre-foto { width: 100%; }
+  .projeto .cabeca { margin-bottom: 14px; }
+  /* no celular o objeto ocupa o alto da tela: fica só o título, sem o subtítulo, colado no card */
+  .projeto .cabeca h2 { font-size: 36px; margin: 0; }
+  .projeto .cabeca p { display: none; }
+  .projeto:not(.ativo) .cabeca { opacity: 1; }
+  .contato-grade, .form { grid-template-columns: 1fr; }
+  .rodape { flex-direction: column; align-items: start; }
+}
+
+
+/* reserva para quando a rolagem suave está desligada (reduzir movimento: sem Lenis, sem a classe
+   .lenis): o encaixe nativo do navegador para sempre num trabalho, no centro do trecho preso */
+@media (max-width: 899px) and (pointer: coarse) {
+  html:not(.lenis) { scroll-snap-type: y mandatory; }
+  html:not(.lenis) .hero, html:not(.lenis) .sobre, html:not(.lenis) .contato { scroll-snap-align: start; }
+  html:not(.lenis) .projeto { scroll-snap-align: center; scroll-snap-stop: always; }
+}
+
+/* Stagger Entrance (Kinetics) no Sobre: os filhos sobem em sequência quando o grupo entra na tela
+   (a classe .escalonado só existe se o js/motion.js rodou: sem js, nada fica escondido) */
+.escalonado > * { opacity: 0; transform: translateY(14px); transition: opacity .55s var(--deslize), transform .6s var(--deslize); transition-delay: calc(var(--i, 0) * 80ms); }
+.escalonado.entrou > * { opacity: 1; transform: none; }
+
+/* troca de tema: a fusão da página (View Transitions) dura um pouco mais que o padrão, na curva
+   de troca; sem ela, as cores deslizam enquanto .tema-trocando estiver no html */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .7s; animation-timing-function: cubic-bezier(.65, 0, .35, 1); }
+.tema-trocando, .tema-trocando *, .tema-trocando *::before, .tema-trocando *::after {
+  transition-property: background-color, color, border-color, box-shadow, fill, stroke !important;
+  transition-duration: .6s !important;
+  transition-timing-function: ease !important;
+  transition-delay: 0s !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .frase .letra { transition: none; }
+  .projeto-cartao > *, .projeto h3, .entregas li, .projeto-num b, .projeto-cartao, .pilula, .escalonado > * {
+    transition: none !important; animation: none !important;
+  }
+  .projeto:not(.ativo) .projeto-cartao > *, .projeto:not(.ativo) .entregas li { transform: none; }
+  .projeto:not(.ativo) h3 { clip-path: none; }
+}
+
+
+/* no toque o card do contato fica sem blur: ele é 80% opaco (quase não se vê a diferença) e o blur
+   seria recalculado sobre a água animada a cada quadro, numa placa do tamanho da tela */
+@media (pointer: coarse) {
+  .contato { --vidro: rgba(12, 42, 49, .9); }
+  .contato::before { -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+@media (pointer: coarse) and (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .contato { --vidro: rgba(7, 12, 24, .82); } }
+@media (pointer: coarse) { :root[data-theme="dark"] .contato { --vidro: rgba(7, 12, 24, .82); } }
+
+/* =====================================================================
+   Site com três páginas (Início, Trabalhos, Orçamento), 2026-10-11
+   ===================================================================== */
+
+/* troca de página: o navegador funde uma página na outra (Chrome, Edge, Safari 18.2+) */
+@view-transition { navigation: auto; }
+
+/* ---------- botões das chamadas (hero, fecho, simulador) */
+.botao {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 46px; padding: 0 22px; border-radius: 999px; border: 1px solid transparent;
+  font: 500 15px/1 var(--corpo); text-decoration: none; cursor: pointer; white-space: nowrap;
+  transition: background .3s var(--ease), color .3s var(--ease), border-color .3s var(--ease), transform .45s var(--mola);
+}
+.botao span { transition: transform .45s var(--mola); }
+.botao:hover span { transform: translateX(4px); }
+.botao:active { transform: scale(.97); }
+.botao.cheio { background: var(--tinta); color: var(--papel); position: relative; overflow: hidden; isolation: isolate; }
+.botao.cheio:hover { background: var(--tinta-forte); }
+.botao.vazado { background: var(--chip); color: var(--tinta); border-color: var(--fio); }
+.botao.vazado:hover { border-color: var(--tinta); }
+.botao.texto { padding: 0 6px; color: var(--tinta); text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 1px; }
+.botao.texto:hover { text-decoration-thickness: 2px; }
+/* Shine Sweep (Kinetics) no botão cheio, só com mouse */
+@media (hover: hover) and (pointer: fine) {
+  .botao.cheio::before {
+    content: ""; position: absolute; top: 0; left: -120%; width: 60%; height: 100%; z-index: -1;
+    transform: skewX(-20deg); pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .3), transparent);
+  }
+  .botao.cheio:hover::before { left: 140%; transition: left .9s var(--troca); }
+}
+.hero-ctas { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; margin-top: 26px; }
+
+/* ---------- Início: trabalhos em destaque */
+.destaques { width: min(100% - 2 * var(--gutter), var(--largura)); margin: 0 auto; padding: 14vh 0 0; }
+.destaques-topo { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
+.destaques-topo h2 { font: 400 clamp(32px, 4vw, 52px)/1 var(--disp); margin: 0; letter-spacing: -.015em; }
+.sublinhado { color: var(--tinta); font-size: 15px; text-underline-offset: 5px; }
+.destaques-lista { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.destaque { --vidro: var(--vd-cartao); display: grid; gap: 12px; padding: 12px; border-radius: 22px; text-decoration: none; color: var(--tinta); }
+.destaque-capa { display: block; aspect-ratio: 16 / 10; border-radius: 14px; overflow: hidden; background: var(--realce); }
+.destaque-capa img { width: 100%; height: 100%; object-fit: cover; object-position: top; transition: transform .6s var(--deslize); }
+.destaque-texto { display: grid; gap: 2px; padding: 0 6px 6px; }
+.destaque-texto b { font: 400 26px/1.1 var(--disp); }
+.destaque-texto small { font-size: 13px; color: var(--fraco); }
+/* Hover Lift (Kinetics) */
+@media (hover: hover) and (pointer: fine) {
+  .destaque { transition: transform .5s var(--mola); }
+  .destaque:hover { transform: translateY(-6px); }
+  .destaque:hover .destaque-capa img { transform: scale(1.04); }
+}
+
+/* ---------- Trabalhos: o título da página no primeiro card e o fecho */
+.cabeca h1 { font: 400 clamp(44px, 6vw, 88px)/.95 var(--disp); margin: 0 0 16px; letter-spacing: -.02em; }
+.fecho { width: min(100% - 2 * var(--gutter), var(--largura)); margin: 0 auto; padding: 18vh 0 12vh; text-align: center; }
+.fecho h2 { font: 400 clamp(40px, 5.5vw, 76px)/1 var(--disp); margin: 0 0 14px; letter-spacing: -.02em; }
+.fecho p { margin: 0 auto; max-width: 34em; color: var(--fraco); font-size: 17px; }
+
+/* ---------- Orçamento */
+.orcamento { width: min(100% - 2 * var(--gutter), var(--largura)); margin: 0 auto; padding: 150px 0 12vh; }
+.orc-topo { max-width: 720px; margin-bottom: 36px; }
+.olho { margin: 0 0 12px; font-size: 12px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--fraco); }
+.orc-topo h1 { font: 400 clamp(42px, 5.6vw, 80px)/.98 var(--disp); margin: 0 0 18px; letter-spacing: -.02em; text-wrap: balance; }
+.orc-sub { margin: 0; max-width: 36em; color: var(--fraco); font-size: 17px; }
+.orc-grade { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 24px; align-items: start; }
+.orc-escolhas { --vidro: var(--vd-cartao); border-radius: 26px; padding: clamp(22px, 2.6vw, 34px); display: grid; gap: 26px; }
+.orc-escolhas fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.orc-escolhas legend { padding: 0; margin-bottom: 12px; font-size: 12px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--fraco); display: flex; align-items: baseline; gap: 10px; width: 100%; }
+.orc-escolhas legend label { cursor: default; }
+.orc-n { margin-left: auto; font: 400 28px/1 var(--disp); letter-spacing: 0; color: var(--tinta); font-variant-numeric: tabular-nums; }
+.opcoes { display: flex; flex-wrap: wrap; gap: 8px; }
+/* cada opção é um chip; o input fica escondido, mas continua acessível pelo teclado */
+.opcao { position: relative; display: inline-flex; }
+.opcao input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.opcao span {
+  display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px;
+  border: 1px solid var(--fio); background: var(--chip); color: var(--tinta); font-size: 14px;
+  transition: background .25s var(--ease), color .25s var(--ease), border-color .25s var(--ease), transform .3s var(--mola);
+}
+.opcao:hover span { border-color: var(--tinta); }
+/* Choice Chips (Kinetics): o chip marcado escurece e dá um pulo */
+.opcao input:checked + span { background: var(--tinta); color: var(--papel); border-color: var(--tinta); animation: pulo .32s var(--mola); }
+.opcao input:focus-visible + span { outline: 2px solid var(--brasa); outline-offset: 3px; }
+.orc-escolhas input[type=range] { width: 100%; accent-color: var(--tinta); height: 28px; cursor: pointer; }
+/* slider desenhado à mão: o nativo muda de cara entre navegadores e temas (no escuro a trilha e
+   o preenchimento ficavam da mesma cor). Trilha fina, preenchida até --p, e um botão redondo
+   que cresce com mola ao pegar */
+.orc-escolhas input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; margin: 0; --p: 30%; }
+.orc-escolhas input[type=range]:focus { outline: none; }
+.orc-escolhas input[type=range]::-webkit-slider-runnable-track {
+  height: 4px; border-radius: 4px;
+  background: linear-gradient(to right, var(--tinta) 0 var(--p), var(--fio) var(--p) 100%);
+}
+.orc-escolhas input[type=range]::-moz-range-track { height: 4px; border-radius: 4px; background: var(--fio); }
+.orc-escolhas input[type=range]::-moz-range-progress { height: 4px; border-radius: 4px; background: var(--tinta); }
+.orc-escolhas input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 22px; height: 22px; margin-top: -9px; border-radius: 50%;
+  background: var(--tinta); border: 4px solid var(--papel); box-shadow: 0 0 0 1px var(--fio), 0 4px 12px -4px rgba(0, 0, 0, .4);
+  transition: transform .35s var(--mola);
+}
+.orc-escolhas input[type=range]::-moz-range-thumb {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--tinta); border: 4px solid var(--papel); box-shadow: 0 0 0 1px var(--fio), 0 4px 12px -4px rgba(0, 0, 0, .4);
+  transition: transform .35s var(--mola);
+}
+.orc-escolhas input[type=range]:hover::-webkit-slider-thumb { transform: scale(1.1); }
+.orc-escolhas input[type=range]:active::-webkit-slider-thumb { transform: scale(1.25); }
+.orc-escolhas input[type=range]:hover::-moz-range-thumb { transform: scale(1.1); }
+.orc-escolhas input[type=range]:active::-moz-range-thumb { transform: scale(1.25); }
+.orc-escolhas input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--brasa); }
+.orc-escolhas input[type=range]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(--brasa); }
+.orc-resultado {
+  --vidro: var(--vd-cartao); border-radius: 26px; padding: clamp(22px, 2.6vw, 34px);
+  position: sticky; top: 110px; display: grid; gap: 10px;
+}
+.orc-resultado .olho { margin: 0; }
+.orc-valor { margin: 0; font: 400 clamp(34px, 3.4vw, 50px)/1.05 var(--disp); letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.orc-valor span { display: inline-block; }
+.orc-valor.pulo { animation: tranco-valor .45s var(--mola); }
+@keyframes tranco-valor { 50% { transform: translateY(-3px) scale(1.02); } }
+.orc-prazo { margin: 0; font-size: 15px; }
+.orc-obs { margin: 0; font-size: 14px; color: var(--fraco); }
+.orc-acoes { display: grid; gap: 10px; margin: 12px 0 4px; }
+.orc-acoes .botao { width: 100%; }
+.orc-copia { border-top: 1px solid var(--fio); padding-top: 12px; display: grid; gap: 8px; }
+.orc-copia[hidden] { display: none; }
+.orc-copia p { margin: 0; font-size: 13px; color: var(--fraco); }
+.orc-copia pre { margin: 0; white-space: pre-wrap; font: 13px/1.5 var(--corpo); background: var(--realce); border-radius: 12px; padding: 12px; user-select: all; }
+.orc-copia .botao { justify-self: start; min-height: 38px; }
+.orc-nota { font-size: 12.5px; color: var(--fraco); }
+.orc-barra { display: none; }
+
+/* ---------- celular */
+@media (max-width: 899px) {
+  .hero-ctas { flex-direction: column; align-items: stretch; width: min(100%, 340px); margin-inline: auto; gap: 10px; }
+  .hero-ctas .botao.texto { min-height: 36px; }
+  .destaques { padding-top: 10vh; }
+  /* destaques viram uma faixa de deslizar */
+  .destaques-lista { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; margin-inline: calc(-1 * var(--gutter)); padding: 4px var(--gutter) 10px; scrollbar-width: none; }
+  .destaques-lista li { flex: 0 0 78%; scroll-snap-align: center; }
+  .cabeca h1 { font-size: 44px; margin: 0 0 6px; }
+  .fecho { padding: 12vh 0 8vh; }
+  .orcamento { padding-top: 110px; padding-bottom: 96px; }
+  .orc-grade { grid-template-columns: 1fr; }
+  /* relative, não static: o vidro (::before) se posiciona pelo card; static o espalharia pela página */
+  .orc-resultado { position: relative; top: auto; }
+  /* o resultado fica preso embaixo enquanto o card não está à vista */
+  .orc-barra {
+    position: fixed; left: var(--gutter); right: var(--gutter); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 30;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 10px 10px 18px; border-radius: 999px; background: var(--tinta); color: var(--papel);
+    box-shadow: 0 12px 30px -12px rgba(0, 0, 0, .5);
+    transition: transform .45s var(--deslize), opacity .3s var(--ease);
+  }
+  .orc-barra-valor { font: 400 22px/1 var(--disp); font-variant-numeric: tabular-nums; }
+  .orc-barra button { border: 0; border-radius: 999px; padding: 10px 14px; background: var(--papel); color: var(--tinta); font: 500 13px/1 var(--corpo); cursor: pointer; }
+  .orc-barra.escondida { transform: translateY(140%); opacity: 0; pointer-events: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .botao, .botao span, .destaque, .destaque-capa img, .opcao span, .orc-barra { transition: none !important; animation: none !important; }
+  .orc-valor.pulo, .opcao input:checked + span { animation: none; }
+}
+
+/* ---------- pop-ups (PDF do orçamento, mensagem do contato): caixa de vidro que sobe com mola (Kinetics: Modal Spring) */
+.dialogo { padding: 0; border: 0; background: none; max-width: min(420px, calc(100vw - 32px)); width: 100%; color: var(--tinta); overflow: visible; }
+.dialogo::backdrop { background: rgba(8, 20, 24, .38); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); animation: dlg-fundo .3s var(--ease); }
+.dialogo-caixa { --vidro: var(--vd-cartao); position: relative; border-radius: 24px; padding: 28px 26px 22px; display: grid; gap: 10px; animation: dlg-sobe .5s var(--mola); }
+.dialogo-icone { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: var(--tinta); color: var(--papel); margin-bottom: 6px; }
+.dialogo-icone svg { width: 22px; height: 22px; }
+.dialogo h2 { margin: 0; font: 400 30px/1.05 var(--disp); letter-spacing: -.01em; }
+.dialogo p { margin: 0; color: var(--fraco); font-size: 15px; line-height: 1.5; }
+.dialogo-dados { margin: 8px 0 6px; display: grid; gap: 0; border-top: 1px solid var(--fio); }
+.dialogo-dados div { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--fio); font-size: 14px; }
+.dialogo-dados dt { color: var(--fraco); }
+.dialogo-dados dd { margin: 0; font-variant-numeric: tabular-nums; text-align: right; min-width: 0; overflow-wrap: anywhere; }
+.dialogo-acoes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+.dialogo-acoes .botao { width: 100%; padding: 0 14px; }
+.dialogo.saindo .dialogo-caixa { animation: dlg-desce .22s var(--ease) forwards; }
+.dialogo.saindo::backdrop { opacity: 0; transition: opacity .22s; }
+@keyframes dlg-sobe { from { opacity: 0; transform: translateY(18px) scale(.94); } }
+@keyframes dlg-desce { to { opacity: 0; transform: translateY(10px) scale(.97); } }
+@keyframes dlg-fundo { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .dialogo-caixa, .dialogo::backdrop { animation: none; } }
+
+/* ---------- contato: obrigatórios, erros e contador de caracteres */
+.campo > label, .campo > span:first-child { display: flex; align-items: baseline; gap: 4px; }
+.campo .obrig { color: var(--brasa); }
+.campo .opcional { color: var(--c-fraco); font-size: 12px; margin-left: 4px; }
+.campo .erro { font-size: 12.5px; color: var(--brasa); line-height: 1.3; }
+.campo .erro:empty { display: none; }
+.campo.invalido input { border-color: var(--brasa); }
+.campo.invalido .pilula { border-color: var(--brasa); }
+.campo.invalido .erro { animation: erro-entra .3s var(--mola); }
+.contador { justify-self: end; font-size: 12px; color: var(--c-fraco); font-variant-numeric: tabular-nums; transition: color .25s; }
+.contador.perto { color: var(--c-texto); }
+.contador.cheio { color: var(--brasa); }
+@keyframes erro-entra { from { opacity: 0; transform: translateY(-4px); } }
+.enviar.balanca { animation: balanca .45s var(--ease); }
+@keyframes balanca { 20% { transform: translateX(-6px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(2px); } }
+@media (prefers-reduced-motion: reduce) { .enviar.balanca, .campo.invalido .erro { animation: none; } }
+
+/* pop-up da mensagem pronta do contato: a mensagem rola dentro da caixa, o X fecha */
+.dialogo-contato { max-width: min(520px, calc(100vw - 32px)); }
+.dialogo-x { position: absolute; top: 14px; right: 14px; width: 36px; height: 36px; border-radius: 50%; border: 0; display: grid; place-items: center;
+  background: var(--realce); color: var(--tinta); cursor: pointer; transition: background .25s, transform .35s var(--mola); }
+.dialogo-x:hover { background: var(--fio); transform: rotate(90deg); }
+.dialogo-x svg { width: 18px; height: 18px; }
+.dialogo .selecionavel { color: var(--tinta); font-weight: 500; user-select: all; overflow-wrap: anywhere; }
+.dialogo-mensagem { margin: 6px 0 4px; max-height: min(34vh, 260px); overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere;
+  font: 13.5px/1.55 var(--corpo); color: var(--tinta); background: var(--realce); border-radius: 14px; padding: 14px 16px; }
+.dialogo-copiar .icones { position: relative; width: 16px; height: 16px; flex: none; }
+.dialogo-copiar .icones > span { position: absolute; inset: 0; display: grid; transition: opacity .2s, transform .3s var(--mola); }
+.dialogo-copiar svg { width: 16px; height: 16px; }
+.dialogo-copiar .ic-check { opacity: 0; transform: scale(.5); }
+.dialogo-copiar.copiado .ic-copiar { opacity: 0; transform: scale(.5); }
+.dialogo-copiar.copiado .ic-check { opacity: 1; transform: none; }
+.dialogo-copiar span { transition: none; }
+.dialogo-copiar:hover span { transform: none; }
+@media (max-width: 480px) { .dialogo-acoes { grid-template-columns: 1fr; } .dialogo-acoes .botao.cheio { order: -1; } }
+
+/* ---------- barras de rolagem próprias (campo do projeto, mensagem do pop-up, cópia da estimativa)
+   Fina, arredondada, sem setas e na cor do texto com transparência; a trilha some e fica longe
+   dos cantos arredondados. Chrome, Edge e Safari usam ::-webkit-scrollbar; o Firefox só aceita
+   scrollbar-width/color (aplicados só nele: no Chrome eles desligariam o ::-webkit-scrollbar) */
+.campo textarea, .dialogo-mensagem, .orc-copia pre { --rolagem: color-mix(in srgb, currentColor 32%, transparent); --rolagem-forte: color-mix(in srgb, currentColor 55%, transparent); }
+.campo textarea::-webkit-scrollbar, .dialogo-mensagem::-webkit-scrollbar, .orc-copia pre::-webkit-scrollbar { width: 10px; height: 10px; }
+.campo textarea::-webkit-scrollbar-button, .dialogo-mensagem::-webkit-scrollbar-button, .orc-copia pre::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+.campo textarea::-webkit-scrollbar-track, .dialogo-mensagem::-webkit-scrollbar-track, .orc-copia pre::-webkit-scrollbar-track { background: transparent; margin: 10px 0; }
+.campo textarea::-webkit-scrollbar-thumb, .dialogo-mensagem::-webkit-scrollbar-thumb, .orc-copia pre::-webkit-scrollbar-thumb {
+  background: var(--rolagem); border-radius: 10px; border: 3px solid transparent; background-clip: padding-box; min-height: 36px;
+}
+.campo textarea::-webkit-scrollbar-thumb:hover, .dialogo-mensagem::-webkit-scrollbar-thumb:hover, .orc-copia pre::-webkit-scrollbar-thumb:hover { background-color: var(--rolagem-forte); }
+.campo textarea::-webkit-scrollbar-corner, .dialogo-mensagem::-webkit-scrollbar-corner, .orc-copia pre::-webkit-scrollbar-corner { background: transparent; }
+@supports not selector(::-webkit-scrollbar) {
+  .campo textarea, .dialogo-mensagem, .orc-copia pre { scrollbar-width: thin; scrollbar-color: var(--rolagem) transparent; }
+}
+/* rolar dentro da caixa não empurra a página quando chega ao fim (o Lenis já cede a roda a elas: data-lenis-prevent) */
+.campo textarea, .dialogo-mensagem, .orc-copia pre { overscroll-behavior: contain; }
+
+/* telas largas e baixas (tablet deitado, notebook pequeno): o card do contato precisa caber entre o
+   topo fixo e o fim da página; senão, rolado até o fim, o título fica escondido atrás do topo */
+@media (min-width: 900px) and (max-height: 860px) {
+  .contato { --recuo: clamp(20px, 2.6vw, 36px); }
+  .contato .form { gap: 12px; }
+  .contato .campo textarea { min-height: 88px; }
+  .contato .rodape b { font-size: clamp(40px, 5.4vw, 72px); }
+}
+/* os campos encolhem com a coluna (sem isso, nome/e-mail e o texto passavam da borda do card em ~1000 px) */
+.form, .campo { min-width: 0; }
+.campo input, .campo textarea { width: 100%; min-width: 0; box-sizing: border-box; }
+
+/* ---------- estimador: marcas "sob consulta" e "mensal/avulso", notas dos campos, card sem faixa */
+.opcao-marca { margin-left: 7px; font-size: 10.5px; font-weight: 500; letter-spacing: .02em; opacity: .62; white-space: nowrap; }
+.opcao input:checked + span .opcao-marca { opacity: .8; }
+.orc-nota-campo { margin: 8px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--fraco); max-width: 60ch; }
+.orc-nota-topo { margin: -2px 0 12px; }
+.orc-obs { white-space: pre-line; }
+.orc-valor.consulta .orc-min { font-style: italic; }
+@media (max-width: 899px) {
+  /* listas longas de chips: um pouco mais compactas no celular, para o card não esticar demais */
+  .orc-escolhas { gap: 22px; }
+  .opcoes { gap: 6px; }
+  .opcao span { min-height: 36px; padding: 0 13px; font-size: 13.5px; }
+}
+
+/* ---------- véu do entardecer e do amanhecer (js/comum.js > passarCeu): uma camada dentro do
+   fundo, por cima da água e atrás de todo o conteúdo; a mistura (multiply) fica presa ao fundo,
+   que é uma camada própria. As cores e o tempo ficam no script */
+.ceu { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+/* botão de tema durante o entardecer/amanhecer: não responde e fica um pouco apagado */
+.ajuste.tema.ocupado { pointer-events: none; opacity: .55; transition: opacity .25s ease; }
+/* a água do celular cruza os dois vídeos por opacidade: a regra .tema-trocando (que só deixa
+   cores transitarem) cortava essa transição e o vídeo novo surgia de uma vez */
+.tema-trocando .fundo .agua-video { transition-property: opacity !important; transition-duration: .65s !important; transition-timing-function: ease !important; }

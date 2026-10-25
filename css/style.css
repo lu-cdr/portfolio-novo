@@ -29,17 +29,31 @@
 
   /* escala fluida para tela (a do tokens.css é para peças 1080×1440) */
   --t-display: clamp(3.4rem, 13.5vw, 15rem);
-  --t-h1: clamp(3rem, 7.6vw, 8.2rem);
+  --t-h1: clamp(3rem, min(7.6vw, 12svh), 8.2rem); /* teto pela altura: em tela larga e baixa o título não estoura a tela da seção */
   --t-h2: clamp(1.5rem, 2.6vw, 2.4rem);
   --t-corpo: clamp(1.06rem, 1.25vw, 1.25rem);
   --t-rotulo: clamp(.62rem, .75vw, .74rem);
 
   --gutter: clamp(16px, 4vw, 64px);
   --ease: cubic-bezier(.2, .7, .1, 1);
+
+  /* cada seção é uma tela: o respiro de cima desconta o cabeçalho fixo (~72px) */
+  --topo: 72px;
+  --pad-topo: calc(var(--topo) + clamp(1rem, 3svh, 3rem));
+  --pad-base: clamp(1.5rem, 4svh, 3.5rem);
 }
+/* computador: margem lateral um pouco maior, crescendo com a largura (tela 4:3 fica perto da antiga) */
+@media (min-width: 861px) { :root { --gutter: clamp(40px, 6vw, 136px); } }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+/* rolagem suave que "agarra" em cada seção; no celular só puxa quando chega perto,
+   porque lá as seções passam da altura da tela */
+html { scroll-behavior: smooth; scroll-snap-type: y mandatory; }
+.abertura, .secao { scroll-snap-align: start; scroll-snap-stop: always; }
+@media (max-width: 860px) {
+  html { scroll-snap-type: y proximity; }
+  .abertura, .secao { scroll-snap-stop: normal; }
+}
 body {
   margin: 0; background: var(--preto-grao); color: var(--off-white);
   font: 500 var(--t-corpo)/1.45 var(--f-texto);
@@ -143,7 +157,7 @@ a { color: inherit; }
 /* ---------- Abertura ---------- */
 .abertura {
   position: relative; min-height: 100svh; display: grid; isolation: isolate;
-  grid-template-rows: 1fr auto; padding: 104px var(--gutter) clamp(3rem, 8vw, 7rem);
+  grid-template-rows: 1fr auto; padding: 104px var(--gutter) var(--pad-base);
 }
 .abertura > :not(.veu) { position: relative; z-index: 2; }
 .abertura .lado .rotulo-topo { display: flex; align-items: center; gap: .9em; margin-bottom: 1.1rem; }
@@ -206,14 +220,20 @@ a { color: inherit; }
 @keyframes aparece { from { transform: translateY(14px); opacity: 0; } }
 
 /* ---------- Seções (esqueleto) ---------- */
-.secao { position: relative; padding: clamp(5rem, 11vw, 9rem) var(--gutter); background: rgba(16, 16, 16, .86); }
+/* uma tela por seção: altura da tela e conteúdo centrado na vertical. A grade de uma coluna
+   só empilha os filhos (como antes); Abordagem, FAQ e Contato trocam pelas colunas delas */
+.secao {
+  position: relative; min-height: 100svh; padding: var(--pad-topo) var(--gutter) var(--pad-base);
+  display: grid; grid-template-columns: minmax(0, 1fr); align-content: center;
+  background: rgba(16, 16, 16, .86);
+}
 .secao .cab { display: flex; gap: 1.2rem; align-items: baseline; color: var(--folha-realce); margin-bottom: 1.4rem; }
 .secao h2 { margin: 0; font: 900 var(--t-h1)/.95 var(--f-titulo); text-transform: uppercase; max-width: 18ch; }
 .secao .nota { margin-top: 1.4rem; color: var(--folha-realce); }
-.secao.com-azulejos { min-height: 80svh; background: linear-gradient(to bottom, rgba(16,16,16,.86), rgba(16,16,16,.25) 40%, rgba(16,16,16,.7)); }
+.secao.com-azulejos { background: linear-gradient(to bottom, rgba(16,16,16,.86), rgba(16,16,16,.25) 40%, rgba(16,16,16,.7)); }
 
 .secao h3 { margin: 0; font: 700 var(--t-h2)/1 var(--f-titulo); text-transform: uppercase; }
-.titulo-secao { margin-bottom: clamp(2.5rem, 5vw, 4.5rem); }
+.titulo-secao { margin-bottom: clamp(1.5rem, min(5vw, 7svh), 4.5rem); }
 /* título do lado direito (Serviços, FAQ): começa na mesma linha do texto da Abordagem,
    que é a 2ª coluna de uma grade 1.1fr / 1fr com 5vw de vão */
 .titulo-secao.direita { margin-left: calc((100% - 5vw) * 1.1 / 2.1 + 5vw); }
@@ -251,6 +271,14 @@ a { color: inherit; }
 .progresso { flex: 1; height: 1px; background: var(--fio); }
 .progresso i { display: block; height: 100%; background: var(--verde-vivo); transform-origin: 0 50%; transform: scaleX(0); transition: transform .5s var(--ease); }
 .trabalhos .dica { display: flex; align-items: center; gap: .9em; margin-top: 1.4rem; color: var(--folha-realce); }
+/* para caber numa tela: título numa linha só e a dica ao lado dos controles. Se ainda faltar
+   altura, o JS estreita as molduras (que mantêm a proporção) */
+@media (min-width: 861px) {
+  .trabalhos { grid-template-columns: minmax(0, 26rem) minmax(0, 1fr); column-gap: 2.5rem; }
+  .trabalhos > .titulo-secao, .trabalhos > .slides { grid-column: 1 / -1; }
+  .trabalhos h2 { max-width: none; }
+  .trabalhos .dica { margin-top: 2.2rem; align-self: center; }
+}
 
 /* ---------- Faixa infinita ---------- */
 .faixa { overflow: hidden; padding: clamp(1.4rem, 3vw, 2.4rem) 0; background: var(--preto-grao); border-block: 1px solid var(--fio); }
@@ -261,11 +289,18 @@ a { color: inherit; }
 }
 .faixa .trilho i { font-style: normal; color: var(--verde-vivo); font-size: .5em; }
 @keyframes corre { to { transform: translateX(-50%); } }
+/* a faixa não é uma tela sozinha: o JS a põe no fim de Serviços, colada na base da tela.
+   As linhas 1fr de cima e de baixo centralizam título e cartões no espaço que sobra */
+.servicos:has(> .faixa) { grid-template-rows: 1fr auto auto 1fr auto; padding-bottom: 0; }
+.servicos > .titulo-secao { grid-row: 2; }
+.servicos > .cartoes { grid-row: 3; }
+.servicos > .faixa { grid-row: 5; margin: var(--pad-base) calc(var(--gutter) * -1) 0; padding-block: clamp(.9rem, min(2.4vw, 2.6svh), 2rem); }
+.servicos > .faixa .trilho { font-size: clamp(1.8rem, min(4vw, 6svh), 3.6rem); }
 
 /* ---------- Serviços e Processo: 4 colunas ---------- */
 .cartoes, .etapas { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2.6%; }
 .cartoes > li {
-  display: flex; flex-direction: column; gap: 1rem; padding: clamp(1.3rem, 2vw, 2rem);
+  display: flex; flex-direction: column; gap: clamp(.6rem, 1.6svh, 1rem); padding: clamp(1.1rem, min(2vw, 3svh), 2rem);
   border: 1px solid var(--fio); background: rgba(27, 27, 27, .7); min-height: 19rem;
 }
 .cartoes > li > p:not(.num) { margin: 0; }
@@ -275,22 +310,32 @@ a { color: inherit; }
 .etapas .num { margin: 0 0 1.2rem; font: 900 clamp(3rem, 5vw, 5rem)/.8 var(--f-titulo); }
 .etapas p:not(.num) { margin: .9rem 0 0; max-width: 30ch; }
 
-/* ---------- Sobre mim: foto + texto à esquerda, habilidades à direita ---------- */
+/* ---------- Sobre mim: uma tela só ----------
+   Esquerda: título e, embaixo, foto em retrato com os dados sob ela e o texto ao lado.
+   Direita: habilidades na altura toda. Mesma grade 1.1fr / 1fr da Abordagem */
 .sobre-grade { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 3rem 5vw; align-items: start; }
-.sobre-lado > p { max-width: 46ch; margin: 1.4rem 0 0; }
-.sobre .foto { margin: 0; border: 1px solid var(--fio); background: var(--grafite); }
-.sobre .foto img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; }
-.fatos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 1.2rem; margin: 2.4rem 0 0; }
-.fatos > div { padding-top: .9rem; border-top: 1px solid var(--fio); }
-.fatos dt { color: var(--folha-realce); margin-bottom: .5rem; }
+.sobre .titulo-secao { margin-bottom: clamp(1.5rem, 4svh, 2.6rem); }
+.sobre-perfil {
+  display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1fr); align-items: start;
+  grid-template-areas: "foto texto" "fatos texto"; gap: clamp(1rem, 2.6svh, 1.6rem) clamp(1.5rem, 2.5vw, 2.5rem);
+}
+.sobre-texto { grid-area: texto; }
+.sobre-texto p { max-width: 46ch; margin: 0 0 1.1rem; }
+.sobre-texto p:last-child { margin-bottom: 0; }
+.sobre .foto { grid-area: foto; margin: 0; border: 1px solid var(--fio); background: var(--grafite); }
+/* a foto original é 3:2; o recorte em retrato fica no rosto (ele está à esquerda do centro) */
+.sobre .foto img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 5; max-height: 34svh; object-fit: cover; object-position: 38% 30%; }
+.fatos { grid-area: fatos; display: grid; gap: clamp(.6rem, 1.6svh, 1rem); margin: 0; }
+.fatos > div { padding-top: .7rem; border-top: 1px solid var(--fio); }
+.fatos dt { color: var(--folha-realce); margin-bottom: .4rem; }
 .fatos dd { margin: 0; }
 .sobre-habilidades .cab { margin: 0 0 1.2rem; }
 .sobre-habilidades ol { list-style: none; margin: 0; padding: 0; }
-.sobre-habilidades li { display: grid; grid-template-columns: 3rem minmax(0, 1fr); gap: .5rem 1rem; padding: 1.5rem 0; border-top: 1px solid var(--fio); }
+.sobre-habilidades li { display: grid; grid-template-columns: 3rem minmax(0, 1fr); gap: .5rem 1rem; padding: clamp(.7rem, 1.8svh, 1.5rem) 0; border-top: 1px solid var(--fio); }
 .sobre-habilidades li:last-child { border-bottom: 1px solid var(--fio); }
 .sobre-habilidades .num { margin: .35em 0 0; grid-row: 1; }
 .sobre-habilidades h3 { grid-column: 2; }
-.sobre-habilidades li > p:not(.num) { grid-column: 2; margin: .3rem 0 0; max-width: 46ch; color: var(--off-white); opacity: .85; }
+.sobre-habilidades li > p:not(.num) { grid-column: 2; margin: .3rem 0 0; max-width: 56ch; color: var(--off-white); opacity: .85; }
 
 /* ---------- FAQ: perguntas à esquerda, título à direita ---------- */
 .faq { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 0 5vw; align-items: start; } /* mesma grade da Abordagem */
@@ -328,7 +373,7 @@ a { color: inherit; }
 .redes { list-style: none; display: flex; flex-wrap: wrap; gap: 1.4rem; margin: 1.6rem 0 0; padding: 0; }
 .redes a { text-decoration: none; opacity: .78; }
 .redes a:hover { opacity: 1; }
-.form { display: grid; gap: 1.3rem; padding: clamp(1.4rem, 2.4vw, 2.2rem); background: rgba(16, 16, 16, .88); border: 1px solid var(--fio); }
+.form { display: grid; gap: clamp(.9rem, 2svh, 1.3rem); padding: clamp(1.4rem, 2.4vw, 2.2rem); background: rgba(16, 16, 16, .88); border: 1px solid var(--fio); }
 .form label, .form fieldset { display: grid; gap: .55rem; margin: 0; padding: 0; border: 0; }
 .form label > .rotulo, .form legend { color: var(--folha-realce); }
 .form input:not([type=radio]), .form textarea {
@@ -346,6 +391,11 @@ a { color: inherit; }
 .form .botao { justify-self: start; cursor: pointer; font-size: var(--t-rotulo); }
 .rodape { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; padding-top: 1.6rem; margin-top: 2rem; border-top: 1px solid var(--fio); color: var(--folha-realce); }
 .rodape a { text-decoration: none; }
+/* computador: o vão da grade já separa o rodapé, e encolhe em tela baixa para o contato caber numa tela */
+@media (min-width: 861px) {
+  .contato { row-gap: clamp(1.25rem, 3svh, 3rem); }
+  .rodape { margin-top: 0; }
+}
 .rodape a:hover { color: var(--off-white); }
 
 /* ---------- Abordagem: cabeça em ASCII ---------- */
@@ -354,7 +404,7 @@ a { color: inherit; }
   /* termina no mesmo véu das seções seguintes: o piso volta a aparecer aos poucos, sem linha */
   background: linear-gradient(to bottom, var(--preto-grao) 65%, rgba(16, 16, 16, .86));
 }
-.abordagem .cabeca { position: relative; aspect-ratio: 4 / 5; max-height: 86svh; width: 100%; justify-self: center; }
+.abordagem .cabeca { position: relative; aspect-ratio: 4 / 5; max-height: calc(100svh - var(--pad-topo) - var(--pad-base)); width: 100%; justify-self: center; }
 .abordagem .cabeca canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity .8s var(--ease); }
 .abordagem .cabeca.pronta canvas { opacity: 1; }
 .abordagem .texto p:not(.rotulo) { max-width: 38ch; margin: 1.4rem 0 0; }
@@ -388,7 +438,9 @@ a { color: inherit; }
   .etapas { gap: 2.2rem; }
   .cartoes > li { min-height: 0; }
   .faq, .contato, .sobre-grade { grid-template-columns: 1fr; }
-  .fatos { grid-template-columns: 1fr; gap: 1rem; }
+  /* celular: foto e dados lado a lado, texto embaixo na largura toda */
+  .sobre-perfil { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "foto fatos" "texto texto"; }
+  .sobre .foto img { max-height: none; }
   .faq .titulo-secao.direita { grid-column: 1; grid-row: 1; }
   .perguntas { grid-row: 2; }
   .fundo .azulejos, .fundo .brilho { background-size: 640px; }

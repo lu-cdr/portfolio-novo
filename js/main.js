@@ -66,16 +66,18 @@
           return '<li><p class="num">' + (i + 1) + '</p><h3>' + esc(e.titulo) + '</h3><p>' + esc(e.texto) + '</p></li>';
         }).join("") + '</ol></section>';
     },
-    // foto, texto e dados à esquerda; habilidades à direita (mesma grade 1.1fr / 1fr da Abordagem)
+    // título, foto, texto e dados à esquerda; habilidades à direita (mesma grade 1.1fr / 1fr da Abordagem)
     sobre: function (s) {
-      return '<section class="secao sobre" id="' + esc(s.id) + '">' + cabeca(s) +
+      return '<section class="secao sobre" id="' + esc(s.id) + '">' +
         '<div class="sobre-grade">' +
-          '<div class="sobre-lado">' +
-            '<figure class="foto"><img src="' + esc(s.foto.src) + '" alt="' + esc(s.foto.alt) + '" width="1411" height="941" loading="lazy" decoding="async"></figure>' +
-            s.texto.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join("") +
-            '<dl class="fatos">' + s.fatos.map(function (f) {
-              return '<div><dt class="rotulo">' + esc(f.rotulo) + '</dt><dd>' + esc(f.valor) + '</dd></div>';
-            }).join("") + '</dl>' +
+          '<div class="sobre-lado">' + cabeca(s) +
+            '<div class="sobre-perfil">' +
+              '<figure class="foto"><img src="' + esc(s.foto.src) + '" alt="' + esc(s.foto.alt) + '" width="1411" height="941" loading="lazy" decoding="async"></figure>' +
+              '<div class="sobre-texto">' + s.texto.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join("") + '</div>' +
+              '<dl class="fatos">' + s.fatos.map(function (f) {
+                return '<div><dt class="rotulo">' + esc(f.rotulo) + '</dt><dd>' + esc(f.valor) + '</dd></div>';
+              }).join("") + '</dl>' +
+            '</div>' +
           '</div>' +
           '<div class="sobre-habilidades"><p class="rotulo cab">' + esc(s.habilidades_rotulo) + '</p>' +
             '<ol>' + s.habilidades.map(function (h, i) {
@@ -113,9 +115,10 @@
     }
   };
 
-  // a moldura guarda o endereço em data-src; o iframe só nasce quando o slide fica ativo
+  // a moldura guarda o endereço em data-src; o iframe só nasce quando o slide fica ativo.
+  // A barra mostra "endereco" (o domínio público) quando a cópia roda de dentro do portfólio
   function moldura(p, tipo) {
-    var barra = tipo === "desktop" ? '<div class="barra" aria-hidden="true"><i></i><i></i><i></i><span>' + esc(p.url.replace(/^https?:\/\//, "") || "[inserir link do projeto]") + '</span></div>' : "";
+    var barra = tipo === "desktop" ? '<div class="barra" aria-hidden="true"><i></i><i></i><i></i><span>' + esc(p.endereco || p.url.replace(/^https?:\/\//, "") || "[inserir link do projeto]") + '</span></div>' : "";
     return barra + '<div class="vidro" data-src="' + esc(p.url) + '" data-tipo="' + tipo + '">' +
       (p.url ? "" : '<p class="vazio rotulo">Prévia ' + (tipo === "desktop" ? "desktop" : "celular") + '<br>[inserir link]</p>') + '</div>';
   }
@@ -163,6 +166,12 @@
     }).join("") +
     '</main>';
   app.innerHTML = html;
+  // cada seção é uma tela: a faixa sozinha seria uma tira entre duas telas, então ela entra
+  // no fim da seção seguinte (Serviços) e fica colada na base dela
+  app.querySelectorAll("main > .faixa").forEach(function (f) {
+    var s = f.nextElementSibling;
+    if (s && s.classList.contains("secao")) s.appendChild(f);
+  });
   montarRotativo();
   montarTrabalhos();
   montarFaq();
@@ -174,9 +183,15 @@
   function ajustarNome() {
     nome.style.fontSize = "100px";
     var disp = nome.clientWidth, real = nome.firstChild.getBoundingClientRect().width;
-    // teto pela altura: em tela larga e baixa o nome não empurra o texto para fora da primeira dobra
-    var teto = window.innerHeight * .6 / .84;
-    nome.style.fontSize = Math.min(100 * disp / real * .995, teto) + "px";
+    var larg = 100 * disp / real * .995;
+    // teto pela altura: a abertura é uma tela só, então o nome usa a altura que sobra embaixo
+    // do texto (medida com a abertura solta da altura mínima) e nunca passa da tela
+    var ab = nome.parentNode;
+    ab.style.minHeight = "0";
+    var resto = ab.offsetHeight - nome.offsetHeight;
+    ab.style.minHeight = "";
+    var teto = 100 * (document.documentElement.clientHeight - resto) / nome.offsetHeight;
+    nome.style.fontSize = Math.max(Math.min(larg, teto), larg * .5) + "px";
   }
   (document.fonts ? document.fonts.ready : Promise.resolve()).then(ajustarNome);
   window.addEventListener("resize", ajustarNome);
@@ -279,6 +294,21 @@
       if (es[0].isIntersecting) { io.disconnect(); ir(0); }
     }, { rootMargin: "400px 0px" }).observe(sec);
     if (window.ResizeObserver) new ResizeObserver(function () { sec.querySelectorAll(".vidro").forEach(escala); }).observe(sec);
+
+    // a seção é uma tela: se as molduras não couberem na altura, estreita o slide inteiro
+    // (as telas mantêm a proporção). Duas passadas porque a ficha tem largura mínima fixa
+    var lista = sec.querySelector(".slides");
+    function caber() {
+      lista.style.maxWidth = "";
+      if (!matchMedia("(min-width: 861px)").matches) return;
+      for (var n = 0; n < 2; n++) {
+        var sobra = sec.scrollHeight - document.documentElement.clientHeight, h = lista.offsetHeight;
+        if (sobra <= 0) break;
+        lista.style.maxWidth = Math.floor(lista.clientWidth * Math.max(.5, (h - sobra - 1) / h)) + "px";
+      }
+    }
+    (document.fonts ? document.fonts.ready : Promise.resolve()).then(caber);
+    window.addEventListener("resize", caber);
   }
 
   // título da abertura: as letras da frase atual sobem e saem uma a uma, e as da próxima

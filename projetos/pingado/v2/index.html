@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pingado — café de rua (v2)</title>
+<meta name="description" content="Pingado: café de especialidade servido pela janela, na calçada da Vila Madalena, São Paulo. Versão alternativa do projeto conceito.">
+<link rel="icon" href="../img/pingado-icone-gota.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Inter:wght@400;500;600&family=Instrument+Serif:ital@1&display=swap">
+<link rel="stylesheet" href="css/v2.css">
+</head>
+<body>
+<script type="application/json" id="estado">
+{
+  "lang": "pt",
+  "nav": [
+    {"id": "cardapio", "pt": "Cardápio", "en": "Menu"},
+    {"id": "graos", "pt": "Grãos", "en": "Beans"},
+    {"id": "merch", "pt": "Merch", "en": "Merch"},
+    {"id": "onde", "pt": "Onde", "en": "Find us"}
+  ],
+  "hero": {
+    "linha": {"pt": "Café de especialidade servido pela janela, direto na calçada da Vila Madalena.", "en": "Specialty coffee served through a window, right on the sidewalk in Vila Madalena, São Paulo."},
+    "selo": {"pt": "aberto até meia&#8209;noite", "en": "open till midnight"},
+    "cta": {"pt": "Ver o cardápio", "en": "See the menu"}
+  },
+  "como": {
+    "titulo": {"pt": "Sem mesa, sem fila de caixa. Só a janela.", "en": "No tables, no checkout line. Just the window."},
+    "passos": [
+      {"pt": "Chega na janela e dá um oi.", "en": "Walk up to the window and say oi."},
+      {"pt": "Pede o seu. Fica pronto em dois minutos.", "en": "Order yours. It's ready in two minutes."},
+      {"pt": "Toma na calçada, no skate ou andando.", "en": "Drink it on the curb, on your board or on the go."}
+    ],
+    "foto": {"pt": "Fim de tarde na janela.", "en": "Late afternoon at the window."}
+  },
+  "cardapio": {
+    "titulo": {"pt": "cardápio", "en": "menu"},
+    "grupos": [
+      {"nome": {"pt": "Cafés", "en": "Coffee"}, "itens": [
+        {"nome": {"pt": "Pingado", "en": "Pingado"}, "desc": {"pt": "coado com leite vaporizado, no copo americano", "en": "filter coffee with steamed milk, the Brazilian bakery classic"}, "preco": "9"},
+        {"nome": {"pt": "Espresso", "en": "Espresso"}, "desc": {"pt": "o grão do mês, curto e direto", "en": "bean of the month, short and straight"}, "preco": "7"},
+        {"nome": {"pt": "Coado do dia", "en": "Filter of the day"}, "desc": {"pt": "passado na hora, em pano ou V60", "en": "brewed to order, cloth filter or V60"}, "preco": "10"},
+        {"nome": {"pt": "Cortado", "en": "Cortado"}, "desc": {"pt": "espresso e um tanto igual de leite", "en": "espresso cut with an equal part of milk"}, "preco": "9"},
+        {"nome": {"pt": "Tônica com espresso", "en": "Espresso tonic"}, "desc": {"pt": "gelo, tônica e casca de laranja", "en": "ice, tonic water and orange peel"}, "preco": "16"},
+        {"nome": {"pt": "Pingado gelado", "en": "Iced pingado"}, "desc": {"pt": "com leite condensado no fundo", "en": "with condensed milk at the bottom"}, "preco": "13"}
+      ]},
+      {"nome": {"pt": "Pra acompanhar", "en": "On the side"}, "itens": [
+        {"nome": {"pt": "Pão na chapa", "en": "Pão na chapa"}, "desc": {"pt": "pão francês com manteiga, tostado na chapa", "en": "buttered French roll, toasted on the griddle"}, "preco": "8"},
+        {"nome": {"pt": "Pão de queijo", "en": "Pão de queijo"}, "desc": {"pt": "três unidades, saindo do forno", "en": "Brazilian cheese bread, three fresh from the oven"}, "preco": "6"},
+        {"nome": {"pt": "Bolo de fubá", "en": "Cornmeal cake"}, "desc": {"pt": "com goiabada, receita da casa", "en": "with guava paste, house recipe"}, "preco": "9"},
+        {"nome": {"pt": "Misto quente", "en": "Ham and cheese toastie"}, "desc": {"pt": "presunto e queijo prato na chapa", "en": "ham and Brazilian cheese, griddled"}, "preco": "14"}
+      ]}
+    ],
+    "nota": {"pt": "Leite vegetal sem custo extra. Preços em reais.", "en": "Plant milk at no extra cost. Prices in Brazilian reais."}
+  },
+  "graos": {
+    "titulo": {"pt": "O grão do mês", "en": "Bean of the month"},
+    "nome": "Catuaí Amarelo",
+    "notas": {"pt": "Chocolate ao leite, caramelo e casca de laranja.", "en": "Milk chocolate, caramel and orange peel."},
+    "texto": {"pt": "Todo mês a gente escolhe um lote pequeno de um produtor e torra aqui em São Paulo. Quando acaba, acabou.", "en": "Every month we pick a small lot from one farm and roast it here in São Paulo. When it's gone, it's gone."},
+    "ficha": [
+      {"k": {"pt": "Origem", "en": "Origin"}, "v": {"pt": "Serra da Mantiqueira, MG", "en": "Mantiqueira Mountains, Brazil"}},
+      {"k": {"pt": "Altitude", "en": "Altitude"}, "v": {"pt": "1.350 m", "en": "1,350 m"}},
+      {"k": {"pt": "Processo", "en": "Process"}, "v": {"pt": "natural", "en": "natural"}},
+      {"k": {"pt": "Torra", "en": "Roast"}, "v": {"pt": "média", "en": "medium"}},
+      {"k": {"pt": "Pacote", "en": "Bag"}, "v": {"pt": "250 g por R$ 58", "en": "250 g for R$ 58"}}
+    ],
+    "cta": {"pt": "Reservar um pacote", "en": "Reserve a bag"}
+  },
+  "merch": {
+    "titulo": {"pt": "Pra levar a janela com você", "en": "Take the window with you"},
+    "itens": [
+      {"img": "ecobag", "nome": {"pt": "Ecobag de lona crua", "en": "Raw canvas tote"}, "preco": {"pt": "R$ 69", "en": "R$ 69"}},
+      {"img": "bone-copo", "nome": {"pt": "Boné bordado", "en": "Embroidered cap"}, "preco": {"pt": "R$ 119", "en": "R$ 119"}},
+      {"img": "copo-selo", "nome": {"pt": "O copo com o selo", "en": "The stamped cup"}, "preco": {"pt": "vem junto com o café", "en": "comes with your coffee"}}
+    ]
+  },
+  "calcada": {
+    "titulo": {"pt": "Depois das dez, a calçada vira sala de estar.", "en": "After ten, the sidewalk becomes the living room."},
+    "texto": {"pt": "Sem mesa e sem pressa. Tem gente que vem pelo café e fica pela conversa.", "en": "No tables, no rush. People come for the coffee and stay for the talk."}
+  },
+  "onde": {
+    "titulo": "Rua Harmonia, Vila Madalena",
+    "sub": {"pt": "São Paulo. Procura a janela com a luz rosa.", "en": "São Paulo. Look for the window with the pink light."},
+    "horarios": [
+      {"d": {"pt": "Segunda a sexta", "en": "Monday to Friday"}, "h": {"pt": "7h às 0h", "en": "7 am to midnight"}},
+      {"d": {"pt": "Sábado", "en": "Saturday"}, "h": {"pt": "8h à 1h", "en": "8 am to 1 am"}},
+      {"d": {"pt": "Domingo", "en": "Sunday"}, "h": {"pt": "9h às 18h", "en": "9 am to 6 pm"}}
+    ],
+    "insta": "@pingado.cafe",
+    "cta": {"pt": "Abrir no mapa", "en": "Open in maps"}
+  },
+  "rodape": {"pt": "Pingado é uma marca fictícia, criada como projeto conceito por Lucas Giovanni Design.", "en": "Pingado is a fictional brand, created as a concept project by Lucas Giovanni Design."}
+}
+</script>
+<div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.21/dist/lenis.min.js"></script>
+<script src="js/v2.js"></script>
+</body>
+</html>
