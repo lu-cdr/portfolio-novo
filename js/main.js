@@ -212,6 +212,47 @@
     }, { passive: true });
   }
 
+  // troca de seção pela roda (computador). O snap do CSS sozinho puxa de volta para a seção
+  // mais próxima, então um "dente" da roda (~100px) não saía do lugar. Aqui cada gesto leva
+  // à próxima tela; a inércia do trackpad é ignorada enquanto continuar chegando evento.
+  // Seção mais alta que a tela (tablet) rola normal até a borda dela.
+  var telas = [].slice.call(app.querySelectorAll(".abertura, main > .secao")), andando = false, ultimoEvento = 0, soma = 0;
+  var porRoda = matchMedia("(min-width: 861px) and (pointer: fine)");
+  function telaAtual() {
+    var y = window.scrollY + 2, i = 0;
+    telas.forEach(function (t, n) { if (t.offsetTop <= y) i = n; });
+    return i;
+  }
+  function rodaPagina(e) {
+    if (!porRoda.matches || e.ctrlKey) return;
+    var agora = performance.now(), parado = agora - ultimoEvento > 220;
+    ultimoEvento = agora;
+    var i = telaAtual(), t = telas[i], dir = e.deltaY > 0 ? 1 : -1, alto = document.documentElement.clientHeight;
+    // tela mais alta que a janela: deixa rolar dentro dela até a borda
+    if (t.offsetHeight > alto + 2) {
+      var fim = t.offsetTop + t.offsetHeight - alto;
+      if ((dir > 0 && window.scrollY < fim - 2) || (dir < 0 && window.scrollY > t.offsetTop + 2)) return;
+    }
+    e.preventDefault();
+    if (andando) return;
+    if (parado) soma = 0;
+    soma += e.deltaY;
+    if (Math.abs(soma) < 30) return; // trackpad: espera o gesto ter intenção
+    soma = 0;
+    var alvo = telas[Math.min(telas.length - 1, Math.max(0, i + dir))];
+    if (alvo === t) return;
+    andando = true;
+    window.scrollTo({ top: alvo.offsetTop, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    // libera quando a rolagem chegou e a roda parou de mandar evento (fim da inércia)
+    var inicio = performance.now();
+    (function esperar() {
+      var chegou = Math.abs(window.scrollY - alvo.offsetTop) < 2 && performance.now() - ultimoEvento > 180;
+      if (chegou || performance.now() - inicio > 1600) andando = false; // teto: nunca trava se a rolagem for interrompida
+      else requestAnimationFrame(esperar);
+    })();
+  }
+  window.addEventListener("wheel", rodaPagina, { passive: false });
+
   var topo = app.querySelector(".topo");
   window.addEventListener("scroll", function () { topo.classList.toggle("rolou", window.scrollY > 40); }, { passive: true });
   var mb = topo.querySelector(".menu-btn");
@@ -273,6 +314,11 @@
       try {
         var w = f.contentWindow;
         w.addEventListener("scroll", function () { aoRolar(f, fracao(w)); }, { passive: true });
+        // site da moldura no fim (ou no topo): a roda continua e passa para a seção seguinte (ou anterior)
+        w.addEventListener("wheel", function (e) {
+          var m = w.document.documentElement.scrollHeight - w.innerHeight;
+          if ((e.deltaY > 0 && w.scrollY >= m - 2) || (e.deltaY < 0 && w.scrollY <= 0)) rodaPagina(e);
+        }, { passive: false });
       } catch (e) {} // outro domínio: chega pelo "message" abaixo
     }
     window.addEventListener("message", function (e) {
